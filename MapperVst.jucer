@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="SlUItD" name="MapperVst" projectType="audioplug" useAppConfig="0"
+              addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1"
+              headerPath="C:\Users\brady\Documents\GitHub\McGill\libmapper\include&#10;C:\Users\brady\Documents\GitHub\McGill\liblo&#10;C:\Users\brady\Documents\GitHub\McGill\liblo\cmake\build&#10;C:\Users\brady\Documents\GitHub\McGill\zlib-msvc14-x64.1.2.11.7795\build\native\include"
+              defines="HAVE_WINSOCK2_H">
+  <MAINGROUP id="oqNAdc" name="MapperVst">
+    <GROUP id="{C22748AE-EC27-E495-8797-6B540AC21C18}" name="Source">
+      <FILE id="x9WRLi" name="PluginProcessor.cpp" compile="1" resource="0"
+            file="Source/PluginProcessor.cpp"/>
+      <FILE id="llOOsf" name="PluginProcessor.h" compile="0" resource="0"
+            file="Source/PluginProcessor.h"/>
+      <FILE id="rAPWeL" name="PluginEditor.cpp" compile="1" resource="0"
+            file="Source/PluginEditor.cpp"/>
+      <FILE id="zMPSPa" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+    </GROUP>
+  </MAINGROUP>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
+  <EXPORTFORMATS>
+    <VS2019 targetFolder="Builds/VisualStudio2019" externalLibraries="C:\Users\brady\Documents\GitHub\McGill\zlib-msvc14-x64.1.2.11.7795\build\native\lib_debug\zlibd.lib&#10;C:\Users\brady\Documents\GitHub\McGill\liblo\cmake\build\Debug\liblo.lib&#10;C:\Users\brady\Documents\GitHub\McGill\libmapper\build\Debug\libmapper.lib">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="MapperVst"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="MapperVst"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../../../../../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../../../../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../../../../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../../../../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../../../../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../../../../../JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="../../../../../../JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../../../../../JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../../../../../../JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../../../../../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../../../../../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../../../../../JUCE/modules"/>
+      </MODULEPATHS>
+    </VS2019>
+  </EXPORTFORMATS>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+  <LIVE_SETTINGS>
+    <WINDOWS/>
+  </LIVE_SETTINGS>
+</JUCERPROJECT>

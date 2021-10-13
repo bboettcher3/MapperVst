@@ -1,0 +1,38 @@
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2019
+
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MapperVst - Standalone Plugin", "MapperVst_StandalonePlugin.vcxproj", "{FED8CEE6-C13B-6526-36BE-CB1935E96BC5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{85947B19-8CEF-0AED-0242-2D31E88DD061} = {85947B19-8CEF-0AED-0242-2D31E88DD061}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MapperVst - VST3", "MapperVst_VST3.vcxproj", "{2EEE6972-CA98-44B9-1018-BF39D1CCA733}"
+	ProjectSection(ProjectDependencies) = postProject
+		{85947B19-8CEF-0AED-0242-2D31E88DD061} = {85947B19-8CEF-0AED-0242-2D31E88DD061}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MapperVst - Shared Code", "MapperVst_SharedCode.vcxproj", "{85947B19-8CEF-0AED-0242-2D31E88DD061}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2EEE6972-CA98-44B9-1018-BF39D1CCA733}.Debug|x64.ActiveCfg = Debug|x64
+		{2EEE6972-CA98-44B9-1018-BF39D1CCA733}.Debug|x64.Build.0 = Debug|x64
+		{2EEE6972-CA98-44B9-1018-BF39D1CCA733}.Release|x64.ActiveCfg = Release|x64
+		{2EEE6972-CA98-44B9-1018-BF39D1CCA733}.Release|x64.Build.0 = Release|x64
+		{FED8CEE6-C13B-6526-36BE-CB1935E96BC5}.Debug|x64.ActiveCfg = Debug|x64
+		{FED8CEE6-C13B-6526-36BE-CB1935E96BC5}.Debug|x64.Build.0 = Debug|x64
+		{FED8CEE6-C13B-6526-36BE-CB1935E96BC5}.Release|x64.ActiveCfg = Release|x64
+		{FED8CEE6-C13B-6526-36BE-CB1935E96BC5}.Release|x64.Build.0 = Release|x64
+		{85947B19-8CEF-0AED-0242-2D31E88DD061}.Debug|x64.ActiveCfg = Debug|x64
+		{85947B19-8CEF-0AED-0242-2D31E88DD061}.Debug|x64.Build.0 = Debug|x64
+		{85947B19-8CEF-0AED-0242-2D31E88DD061}.Release|x64.ActiveCfg = Release|x64
+		{85947B19-8CEF-0AED-0242-2D31E88DD061}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
