@@ -35,7 +35,6 @@ private:
     static void graphCallbackHandler(mpr_graph g, mpr_obj o, mpr_graph_evt e, const void* v);
 
     mpr_graph mGraph;
-    mpr_dev mDummyDevice;
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     MapperVstAudioProcessor& audioProcessor;

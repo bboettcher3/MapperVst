@@ -14,9 +14,8 @@ MapperVstAudioProcessorEditor::MapperVstAudioProcessorEditor (MapperVstAudioProc
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
     mGraph = mpr_graph_new(MPR_OBJ);
-    //mDummyDevice = mpr_dev_new(strdup("dummybitch"), mGraph);
     mpr_graph_add_cb(mGraph, graphCallbackHandler, MPR_OBJ, nullptr);
-    startTimer(1000);
+    startTimer(5000);
 
     setSize(400, 300);
 }
@@ -33,7 +32,10 @@ void MapperVstAudioProcessorEditor::timerCallback() {
     juce::String intf = juce::String(mpr_graph_get_interface(mGraph));
     // IP
     juce::String ip = juce::String(mpr_graph_get_address(mGraph));
-    DBG("intf: " << intf << ", ip: " << ip << "\n");
+    //DBG("intf: " << intf << ", ip: " << ip);
+
+    // Sync graph with network?
+    mpr_graph_poll(mGraph, 500);
 
     // Print devices
     mpr_list devs = mpr_graph_get_list(mGraph, MPR_DEV);
@@ -42,6 +44,7 @@ void MapperVstAudioProcessorEditor::timerCallback() {
         juce::String devName = juce::String(mpr_obj_get_prop_as_str(dev, MPR_PROP_NAME, NULL));
         juce::String devicesString = juce::String("device ");
         devicesString.append(devName, devName.length());
+        devicesString.append(" ", 1);
         // Make list of signals for each device
         mpr_list sigs = mpr_dev_get_sigs(dev, MPR_DIR_ANY);
         while (sigs) {
@@ -51,15 +54,14 @@ void MapperVstAudioProcessorEditor::timerCallback() {
             devicesString.append(" ", 1);
             sigs = mpr_list_get_next(sigs);
         }
-        DBG(devicesString << "\n");
+        DBG(devicesString);
         devs = mpr_list_get_next(devs);
     }
-    DBG("done printing devices \n");
 }
 
 void MapperVstAudioProcessorEditor::graphCallbackHandler(mpr_graph g, mpr_obj o, mpr_graph_evt e, const void* v)
 {
-    DBG("called back\n");
+    //DBG("called back\n");
 }
 
 //==============================================================================
