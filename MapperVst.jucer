@@ -6,6 +6,12 @@
               defines="HAVE_WINSOCK2_H">
   <MAINGROUP id="oqNAdc" name="MapperVst">
     <GROUP id="{C22748AE-EC27-E495-8797-6B540AC21C18}" name="Source">
+      <GROUP id="{17899BD0-47B0-70E9-741D-F6BF873F247F}" name="Components">
+        <FILE id="HF5udx" name="SignalBlockComponent.cpp" compile="1" resource="0"
+              file="Source/Components/SignalBlockComponent.cpp"/>
+        <FILE id="MAgxdD" name="SignalBlockComponent.h" compile="0" resource="0"
+              file="Source/Components/SignalBlockComponent.h"/>
+      </GROUP>
       <FILE id="x9WRLi" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="llOOsf" name="PluginProcessor.h" compile="0" resource="0"

@@ -2,6 +2,9 @@
 
 <Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="MapperVst\Source\Components">
+      <UniqueIdentifier>{421D3280-B88A-05AC-A5BB-D034E50FB221}</UniqueIdentifier>
+    </Filter>
     <Filter Include="MapperVst\Source">
       <UniqueIdentifier>{CF60B760-A845-E91F-A05A-2582EC6ABAEB}</UniqueIdentifier>
     </Filter>
@@ -430,6 +433,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\Components\SignalBlockComponent.cpp">
+      <Filter>MapperVst\Source\Components</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\PluginProcessor.cpp">
       <Filter>MapperVst\Source</Filter>
     </ClCompile>
@@ -2490,6 +2496,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\Components\SignalBlockComponent.h">
+      <Filter>MapperVst\Source\Components</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\PluginProcessor.h">
       <Filter>MapperVst\Source</Filter>
     </ClInclude>

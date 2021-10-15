@@ -10,72 +10,106 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-MapperVstAudioProcessorEditor::MapperVstAudioProcessorEditor (MapperVstAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p)
-{
-    mGraph = mpr_graph_new(MPR_OBJ);
-    mpr_graph_add_cb(mGraph, graphCallbackHandler, MPR_OBJ, nullptr);
-    startTimer(5000);
+MapperVstAudioProcessorEditor::MapperVstAudioProcessorEditor(MapperVstAudioProcessor& p)
+    : AudioProcessorEditor(&p), audioProcessor(p) {
+  mGraph = mpr_graph_new(MPR_OBJ);
+  mpr_graph_add_cb(mGraph, graphCallbackHandler, MPR_OBJ, nullptr);
+  startTimer(3000);
 
-    setSize(400, 300);
+  setSize(800, 500);
 }
 
-MapperVstAudioProcessorEditor::~MapperVstAudioProcessorEditor()
-{
-    //if (mDummyDevice) mpr_dev_free(mDummyDevice);
-    if (mGraph) mpr_graph_free(mGraph);
+MapperVstAudioProcessorEditor::~MapperVstAudioProcessorEditor() {
+  // if (mDummyDevice) mpr_dev_free(mDummyDevice);
+  if (mGraph) mpr_graph_free(mGraph);
+  mSourceBlocks.clear();
+  mDestBlocks.clear();
 }
 
 void MapperVstAudioProcessorEditor::timerCallback() {
-    // Print graph info
-    // interface
-    juce::String intf = juce::String(mpr_graph_get_interface(mGraph));
-    // IP
-    juce::String ip = juce::String(mpr_graph_get_address(mGraph));
-    //DBG("intf: " << intf << ", ip: " << ip);
+  // Sync graph with network
+  mpr_graph_poll(mGraph, 500);
 
-    // Sync graph with network?
-    mpr_graph_poll(mGraph, 500);
-
-    // Print devices
-    mpr_list devs = mpr_graph_get_list(mGraph, MPR_DEV);
-    while (devs) {
-        mpr_dev dev = *devs;
-        juce::String devName = juce::String(mpr_obj_get_prop_as_str(dev, MPR_PROP_NAME, NULL));
-        juce::String devicesString = juce::String("device ");
-        devicesString.append(devName, devName.length());
-        devicesString.append(" ", 1);
-        // Make list of signals for each device
-        mpr_list sigs = mpr_dev_get_sigs(dev, MPR_DIR_ANY);
-        while (sigs) {
-            mpr_sig sig = *sigs;
-            juce::String sigName = juce::String(mpr_obj_get_prop_as_str(sig, MPR_PROP_NAME, NULL));
-            devicesString.append(sigName, sigName.length());
-            devicesString.append(" ", 1);
-            sigs = mpr_list_get_next(sigs);
+  // Print devices
+  mpr_list devs = mpr_graph_get_list(mGraph, MPR_DEV);
+  while (devs) {
+    mpr_dev dev = *devs;
+    juce::String devName = juce::String(mpr_obj_get_prop_as_str(dev, MPR_PROP_NAME, NULL));
+    // Update or create source blocks
+    if (mpr_dev_get_sigs(dev, MPR_DIR_OUT)) {
+      bool foundBlock = false;
+      // Update signal block if already exists
+      for (int i = 0; i < mSourceBlocks.size(); ++i) {
+        if (mSourceBlocks[i]->getDevice() == dev) {
+          foundBlock = true;
         }
-        DBG(devicesString);
-        devs = mpr_list_get_next(devs);
+      }
+      if (!foundBlock) {
+        // Create a new block if it doesn't exist yet
+        auto newBlock = new SignalBlockComponent(true, dev, mSourceBlocks.size());
+        addAndMakeVisible(newBlock);
+        // TODO: add signal clicking lambda
+        mSourceBlocks.add(newBlock);
+      }
     }
+    // Update or create dest blocks
+    if (mpr_dev_get_sigs(dev, MPR_DIR_IN)) {
+      bool foundBlock = false;
+      // Update signal block if already exists
+      for (int i = 0; i < mDestBlocks.size(); ++i) {
+        if (mDestBlocks[i]->getDevice() == dev) {
+          foundBlock = true;
+        }
+      }
+      if (!foundBlock) {
+        // Create a new block if it doesn't exist yet
+        auto newBlock = new SignalBlockComponent(false, dev, mDestBlocks.size());
+        addAndMakeVisible(newBlock);
+        // TODO: add signal clicking lambda
+        mDestBlocks.add(newBlock);
+      }
+    }
+    devs = mpr_list_get_next(devs);
+  }
+  resized();
 }
 
-void MapperVstAudioProcessorEditor::graphCallbackHandler(mpr_graph g, mpr_obj o, mpr_graph_evt e, const void* v)
-{
-    //DBG("called back\n");
+void MapperVstAudioProcessorEditor::graphCallbackHandler(mpr_graph g, mpr_obj o, mpr_graph_evt e, const void* v) {
+  // DBG("called back\n");
 }
 
 //==============================================================================
-void MapperVstAudioProcessorEditor::paint (juce::Graphics& g)
-{
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+void MapperVstAudioProcessorEditor::paint(juce::Graphics& g) {
+  g.setGradientFill(juce::ColourGradient::vertical(juce::Colour(BG_COLOUR_1), juce::Colour(BG_COLOUR_2), getLocalBounds()));
+  g.fillAll();
 
-    g.setColour (juce::Colours::white);
-    g.setFont (15.0f);
-    g.drawFittedText ("Hello World!", getLocalBounds(), juce::Justification::centred, 1);
+  // Draw direction labels
+  auto r = getLocalBounds();
+  r.removeFromTop(TOP_PANEL_HEIGHT);
+  auto dirLabelPanel = r.removeFromTop(DIR_LABEL_HEIGHT);
+  g.setColour(juce::Colours::white);
+  // TODO: show number of signals instead of devices
+  juce::String sourcesLabel = juce::String("Sources (") + juce::String(mSourceBlocks.size()) + juce::String(")");
+  g.drawText(sourcesLabel, dirLabelPanel.removeFromLeft(dirLabelPanel.getWidth() / 2), juce::Justification::left);
+  juce::String destsLabel = juce::String("Destinations (") + juce::String(mDestBlocks.size()) + juce::String(")");
+  g.drawText(destsLabel, dirLabelPanel, juce::Justification::right);
 }
 
-void MapperVstAudioProcessorEditor::resized()
-{
+void MapperVstAudioProcessorEditor::resized() {
+  auto r = getLocalBounds();
+  // Remove top panel
+  r.removeFromTop(TOP_PANEL_HEIGHT);
+  r.removeFromTop(DIR_LABEL_HEIGHT);
 
+  // Position signal blocks
+  // Source blocks
+  auto sourcePanel = r.removeFromLeft(SIG_BLOCK_WIDTH);
+  for (int i = 0; i < mSourceBlocks.size(); ++i) {
+    mSourceBlocks[i]->setBounds(sourcePanel.removeFromTop(mSourceBlocks[i]->getNumSigs() * SIG_HEIGHT));
+  }
+  // Dest blocks
+  auto destPanel = r.removeFromRight(SIG_BLOCK_WIDTH);
+  for (int i = 0; i < mDestBlocks.size(); ++i) {
+    mDestBlocks[i]->setBounds(destPanel.removeFromTop(mDestBlocks[i]->getNumSigs() * SIG_HEIGHT));
+  }
 }
