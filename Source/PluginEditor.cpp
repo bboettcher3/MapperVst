@@ -47,8 +47,12 @@ void MapperVstAudioProcessorEditor::timerCallback() {
       if (!foundBlock) {
         // Create a new block if it doesn't exist yet
         auto newBlock = new SignalBlockComponent(true, dev, mSourceBlocks.size());
+        newBlock->addMouseListener(this, false);
+        // signal clicking lambda
+        newBlock->onSignalDragging = [this, newBlock](int sigIdx) {
+          mDragSource = newBlock;
+        };
         addAndMakeVisible(newBlock);
-        // TODO: add signal clicking lambda
         mSourceBlocks.add(newBlock);
       }
     }
@@ -65,7 +69,6 @@ void MapperVstAudioProcessorEditor::timerCallback() {
         // Create a new block if it doesn't exist yet
         auto newBlock = new SignalBlockComponent(false, dev, mDestBlocks.size());
         addAndMakeVisible(newBlock);
-        // TODO: add signal clicking lambda
         mDestBlocks.add(newBlock);
       }
     }
@@ -93,6 +96,13 @@ void MapperVstAudioProcessorEditor::paint(juce::Graphics& g) {
   g.drawText(sourcesLabel, dirLabelPanel.removeFromLeft(dirLabelPanel.getWidth() / 2), juce::Justification::left);
   juce::String destsLabel = juce::String("Destinations (") + juce::String(mDestBlocks.size()) + juce::String(")");
   g.drawText(destsLabel, dirLabelPanel, juce::Justification::right);
+
+  // Draw dragging arrow
+  if (mDragSource != nullptr) {
+    juce::Point<int> dragStart = mDragSource->getBounds().getTopRight().translated(0, mDragSource->getDragPosition());
+    g.setColour(juce::Colours::white);
+    g.drawArrow(juce::Line<int>(dragStart, mDragPoint).toFloat(), 4, 10, 10);
+  }
 }
 
 void MapperVstAudioProcessorEditor::resized() {
@@ -111,5 +121,20 @@ void MapperVstAudioProcessorEditor::resized() {
   auto destPanel = r.removeFromRight(SIG_BLOCK_WIDTH);
   for (int i = 0; i < mDestBlocks.size(); ++i) {
     mDestBlocks[i]->setBounds(destPanel.removeFromTop(mDestBlocks[i]->getNumSigs() * SIG_HEIGHT));
+  }
+}
+
+void MapperVstAudioProcessorEditor::mouseUp(const juce::MouseEvent& e) {
+  if (mDragSource != nullptr) {
+    mDragSource->setDoneDragging();
+    mDragSource = nullptr;
+    mDragPoint = juce::Point<int>();
+  }
+}
+
+void MapperVstAudioProcessorEditor::mouseDrag(const juce::MouseEvent& e) {
+  if (mDragSource != nullptr) {
+    mDragPoint = e.getEventRelativeTo(this).getPosition();
+    repaint();
   }
 }

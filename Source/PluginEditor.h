@@ -29,6 +29,9 @@ class MapperVstAudioProcessorEditor : public juce::AudioProcessorEditor, public 
   void paint(juce::Graphics&) override;
   void resized() override;
 
+  void mouseUp(const juce::MouseEvent& e) override;
+  void mouseDrag(const juce::MouseEvent& e) override;
+
   void timerCallback() override;
 
  private:
@@ -48,6 +51,11 @@ class MapperVstAudioProcessorEditor : public juce::AudioProcessorEditor, public 
   // signal block components for mapping
   juce::OwnedArray<SignalBlockComponent> mSourceBlocks;  // all source blocks
   juce::OwnedArray<SignalBlockComponent> mDestBlocks;    // all destination blocks
+
+  // Bookkeeping
+  SignalBlockComponent* mDragSource = nullptr; // Only non-null if currently dragging
+  juce::Point<int> mDragPoint;
+
 
   // This reference is provided as a quick way for your editor to
   // access the processor object that created it.
