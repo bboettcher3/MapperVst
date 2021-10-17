@@ -433,7 +433,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Components\SignalBlockComponent.cpp">
+    <ClCompile Include="..\..\Source\Components\MapViewComponent.cpp">
       <Filter>MapperVst\Source\Components</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\PluginProcessor.cpp">
@@ -2496,7 +2496,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\Components\SignalBlockComponent.h">
+    <ClInclude Include="..\..\Source\Components\MapViewComponent.h">
       <Filter>MapperVst\Source\Components</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\PluginProcessor.h">

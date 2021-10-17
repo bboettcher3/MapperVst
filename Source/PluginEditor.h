@@ -11,7 +11,7 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 #include "mapper/mapper.h"
-#include "Components/SignalBlockComponent.h"
+#include "Components/MapViewComponent.h"
 
 #ifdef WIN32
 #define _WINSOCKAPI_  // for winsock1/2 conflicts
@@ -29,9 +29,6 @@ class MapperVstAudioProcessorEditor : public juce::AudioProcessorEditor, public 
   void paint(juce::Graphics&) override;
   void resized() override;
 
-  void mouseUp(const juce::MouseEvent& e) override;
-  void mouseDrag(const juce::MouseEvent& e) override;
-
   void timerCallback() override;
 
  private:
@@ -39,23 +36,15 @@ class MapperVstAudioProcessorEditor : public juce::AudioProcessorEditor, public 
   static constexpr auto TOP_PANEL_HEIGHT = 80;
   static constexpr auto DIR_LABEL_HEIGHT = 20;
   static constexpr auto SIG_BLOCK_WIDTH = 300;
-  static constexpr auto SIG_HEIGHT = 40;
   static constexpr auto BG_COLOUR_1 = 0xff595959;
   static constexpr auto BG_COLOUR_2 = 0xff4d4d4d;
 
   static void graphCallbackHandler(mpr_graph g, mpr_obj o, mpr_graph_evt e, const void* v);
 
-  mpr_graph mGraph;  // libmapper graph that keeps track of network
+  mpr_graph mGraph; // libmapper graph that keeps track of network
 
   // UI Components
-  // signal block components for mapping
-  juce::OwnedArray<SignalBlockComponent> mSourceBlocks;  // all source blocks
-  juce::OwnedArray<SignalBlockComponent> mDestBlocks;    // all destination blocks
-
-  // Bookkeeping
-  SignalBlockComponent* mDragSource = nullptr; // Only non-null if currently dragging
-  juce::Point<int> mDragPoint;
-
+  MapViewComponent mMapView;
 
   // This reference is provided as a quick way for your editor to
   // access the processor object that created it.
