@@ -20,8 +20,16 @@ MapViewComponent::MapViewComponent() {
 MapViewComponent::~MapViewComponent() {}
 
 void MapViewComponent::paint(juce::Graphics& g) {
+  // Show number of signals
+  auto dirLabelPanel = getLocalBounds().removeFromTop(DIR_LABEL_HEIGHT);
+  g.setColour(juce::Colours::white);
+  juce::String sourcesLabel = juce::String("Sources (") + juce::String(mSourceSigs.size()) + juce::String(")");
+  g.drawText(sourcesLabel, dirLabelPanel.removeFromLeft(dirLabelPanel.getWidth() / 2), juce::Justification::left);
+  juce::String destsLabel = juce::String("Destinations (") + juce::String(mDestSigs.size()) + juce::String(")");
+  g.drawText(destsLabel, dirLabelPanel, juce::Justification::right);
+
   mpr_dev curDev = nullptr;
-  int devYPos = 0;
+  int devYPos = DIR_LABEL_HEIGHT;
   for (int i = 0; i < mSourceSigs.size(); ++i) {
     // Check for new device block
     mpr_dev dev = mpr_sig_get_dev(mSourceSigs[i].sig);
@@ -63,10 +71,10 @@ void MapViewComponent::paint(juce::Graphics& g) {
     g.drawText(devName, devPanel, juce::Justification::centred, true);
     g.drawRect(devPanel, 1);
   }
-  
+
   // Dest blocks
   curDev = nullptr;
-  devYPos = 0;
+  devYPos = DIR_LABEL_HEIGHT;
   for (int i = 0; i < mDestSigs.size(); ++i) {
     // Check for new device block
     mpr_dev dev = mpr_sig_get_dev(mDestSigs[i].sig);
@@ -91,7 +99,7 @@ void MapViewComponent::paint(juce::Graphics& g) {
       g.setColour(mDestSigs[i].colour.brighter(0.2f));
       g.fillRect(sigPanel.reduced(1));
     }
-    g.setColour(mDestSigs[i].sig == mDragSource.sig ? juce::Colours::white : juce::Colours::black);
+    g.setColour(mDestSigs[i].sig == mDragDest.sig ? juce::Colours::white : juce::Colours::black);
     g.drawRect(sigPanel, 1);
     g.setColour(juce::Colours::black);
     g.drawText(sigName, sigPanel, juce::Justification::centred);
@@ -103,43 +111,95 @@ void MapViewComponent::paint(juce::Graphics& g) {
     juce::String devName = juce::String(mpr_obj_get_prop_as_str(dev, MPR_PROP_NAME, nullptr));
     g.setFont(16.0f);
     g.setColour(mDestSigs.back().colour);
-    auto devPanel =
-        juce::Rectangle<int>(getWidth() - mDevNameWidth, devYPos, mDevNameWidth, mDestSigs.back().yPos + SIG_HEIGHT - devYPos);
+    auto devPanel = juce::Rectangle<int>(getWidth() - mDevNameWidth, devYPos, mDevNameWidth,
+                                         mDestSigs.back().yPos + SIG_HEIGHT - devYPos);
     g.fillRect(devPanel);
     g.setColour(juce::Colours::black);
     g.drawText(devName, devPanel, juce::Justification::centred, true);
     g.drawRect(devPanel, 1);
   }
-  
+
   // Draw dragging arrow
   if (mDragSource.sig != nullptr) {
-    juce::Point<int> dragStart = juce::Point<int>(mDevNameWidth + mSigWidth, mDragSource.yPos).translated(0, SIG_HEIGHT / 2.0f);
+    juce::Point<int> dragStart =
+        juce::Point<int>(mDevNameWidth + mSigWidth, mDragSource.yPos).translated(0, SIG_HEIGHT / 2.0f);
     g.setColour(juce::Colours::white);
     g.drawArrow(juce::Line<int>(dragStart, mDragPoint).toFloat(), 4, 10, 10);
+  }
+
+  // Draw mappings
+  for (int i = 0; i < mMaps.size(); ++i) {
+    juce::Point<int> connStart =
+        juce::Point<int>(mDevNameWidth + mSigWidth, mMaps[i].signals.first.yPos).translated(0, SIG_HEIGHT / 2.0f);
+    juce::Point<int> connEnd =
+        juce::Point<int>(getWidth() / 2.0f + MAPPING_GAP, mMaps[i].signals.second.yPos).translated(0, SIG_HEIGHT / 2.0f);
+    g.setColour(juce::Colours::white);
+    g.drawArrow(juce::Line<int>(connStart, connEnd).toFloat(), 4, 10, 10);
   }
 }
 
 void MapViewComponent::resized() { mSigWidth = (getWidth() / 2.0f) - MAPPING_GAP - mDevNameWidth; }
 
-void MapViewComponent::addDevice(mpr_dev device) {
+void MapViewComponent::checkAddDevice(mpr_dev device) {
+  // Skip if already added
+  if (std::find(mDevices.begin(), mDevices.end(), device) != mDevices.end()) return;
   mpr_list sigs = mpr_dev_get_sigs(device, MPR_DIR_ANY);
   juce::Colour baseColour = juce::Colour(BASE_COLOUR);
   while (sigs) {
     mpr_sig sig = *sigs;
-    bool isSourceSig = mpr_obj_get_prop_as_int32(sig, MPR_PROP_DIR, nullptr) == MPR_DIR_OUT;
-    if (isSourceSig) {
-      Signal newSig =
-          Signal(sig, mSourceSigs.size() * SIG_HEIGHT, baseColour.withHue(baseColour.getHue() + ((float)mNumDevices / MAX_IDX)));
-      mSourceSigs.push_back(newSig);
-    } else {
-      Signal newSig =
-          Signal(sig, mDestSigs.size() * SIG_HEIGHT, baseColour.withHue(baseColour.getHue() + ((float)mNumDevices / MAX_IDX)));
-      mDestSigs.push_back(newSig);
-    }    
+    checkAddSignal(sig);
     sigs = mpr_list_get_next(sigs);
   }
-  mNumDevices++;
+  mDevices.push_back(device);
   repaint();
+}
+
+void MapViewComponent::removeDevice(mpr_dev device) {
+  std::remove_if(mDevices.begin(), mDevices.end(), [device](mpr_dev other) { return other == device; });
+}
+
+void MapViewComponent::checkAddMap(mpr_map map) {
+  mpr_sig sourceSig = mpr_map_get_sig(map, 0, MPR_LOC_SRC);
+  mpr_sig destSig = mpr_map_get_sig(map, 0, MPR_LOC_DST);
+  jassert(sourceSig && destSig);
+  checkAddSignal(sourceSig);
+  checkAddSignal(destSig);
+}
+
+void MapViewComponent::removeMap(mpr_map map) {
+  std::remove_if(mMaps.begin(), mMaps.end(), [map](Map other) { return other.map == map; });
+}
+
+void MapViewComponent::checkAddSignal(mpr_sig signal) {
+  bool isSource = mpr_obj_get_prop_as_int32(signal, MPR_PROP_DIR, nullptr) == MPR_DIR_OUT;
+  std::vector<Signal>& signals = isSource ? mSourceSigs : mDestSigs;
+  // Skip if already added
+  if (std::find_if(signals.begin(), signals.end(), [signal](Signal other) { return other.sig == signal; }) != signals.end())
+    return;
+  // Add signal to its list
+  juce::Colour baseColour = juce::Colour(BASE_COLOUR);
+  Signal newSig = Signal(signal, DIR_LABEL_HEIGHT + signals.size() * SIG_HEIGHT,
+                         baseColour.withHue(baseColour.getHue() + ((float)mDevices.size() / MAX_IDX)));
+  // Find where to insert it in list (next to signals with same device)
+  mpr_dev inputDevice = mpr_sig_get_dev(signal);
+  bool foundDevice = false;
+  auto sigIter = signals.begin();
+  for (; sigIter != signals.end(); ++sigIter) {
+    // Break only after finding device
+    if (mpr_sig_get_dev((*sigIter).sig) == inputDevice) {
+      foundDevice = true;
+    } else if (foundDevice) {
+      break;
+    }
+  }
+  // Insert signal at the end of its device's list
+  signals.insert(sigIter, newSig);
+}
+
+void MapViewComponent::removeSignal(mpr_sig signal) {
+  bool isSource = mpr_obj_get_prop_as_int32(signal, MPR_PROP_DIR, nullptr) == MPR_DIR_OUT;
+  std::vector<Signal>& signals = isSource ? mSourceSigs : mDestSigs;
+  std::remove_if(signals.begin(), signals.end(), [signal](Signal other) { return other.sig == signal; });
 }
 
 void MapViewComponent::mouseMove(const juce::MouseEvent& e) {
@@ -148,23 +208,30 @@ void MapViewComponent::mouseMove(const juce::MouseEvent& e) {
     for (Signal& sig : mSourceSigs) {
       if (juce::Rectangle<int>(mDevNameWidth, sig.yPos, mSigWidth, SIG_HEIGHT).contains(e.getPosition())) {
         mHoverSig = sig;
-        repaint();
       }
     }
   } else {
     for (Signal& sig : mDestSigs) {
-      if (juce::Rectangle<int>((getWidth() / 2.0f) + MAPPING_GAP, sig.yPos, mSigWidth, SIG_HEIGHT).contains(e.getPosition())) {
+      if (juce::Rectangle<int>((getWidth() / 2.0f) + MAPPING_GAP, sig.yPos, mSigWidth, SIG_HEIGHT)
+              .contains(e.getPosition())) {
         mHoverSig = sig;
-        repaint();
       }
     }
   }
+  repaint();
 }
 
 void MapViewComponent::mouseDrag(const juce::MouseEvent& e) {
   // Signal mapping drag
+  mDragDest = Signal();
   if (mDragSource.sig != nullptr) {
     mDragPoint = e.getPosition();
+    for (Signal& sig : mDestSigs) {
+      if (juce::Rectangle<int>((getWidth() / 2.0f) + MAPPING_GAP, sig.yPos, mSigWidth, SIG_HEIGHT)
+              .contains(e.getPosition())) {
+        mDragDest = sig;
+      }
+    }
     repaint();
   }
 }
@@ -181,9 +248,14 @@ void MapViewComponent::mouseDown(const juce::MouseEvent& e) {
 }
 
 void MapViewComponent::mouseUp(const juce::MouseEvent& e) {
-  if (mDragSource.sig != nullptr) {
+  if (mDragSource.sig != nullptr && mDragDest.sig != nullptr) {
+    // Add new mapping
+    mpr_map newMap = mpr_map_new(1, &mDragSource.sig, 1, &mDragDest.sig);
+    mpr_obj_push(newMap);
+    mMaps.push_back(Map(newMap, mDragSource, mDragDest));
     mDragSource = Signal();
+    mDragDest = Signal();
     mDragPoint = juce::Point<int>();
-    repaint();
   }
+  repaint();
 }

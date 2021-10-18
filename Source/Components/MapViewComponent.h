@@ -30,17 +30,27 @@ class MapViewComponent : public juce::Component {
   void mouseUp(const juce::MouseEvent& e) override;
   void mouseExit(const juce::MouseEvent& e) override;
 
-  void addDevice(mpr_dev device);
+  /* Graph changes */
+  // Conditionally adds mapping if not already added
+  void checkAddMap(mpr_map map);
+  void removeMap(mpr_map map);
+  // Conditionally adds device and its signals if not already added
+  void checkAddDevice(mpr_dev device);
+  void removeDevice(mpr_dev device);
+  // Conditionally adds signal to respective list if not already added
+  void checkAddSignal(mpr_sig signal);
+  void removeSignal(mpr_sig signal);
   void clearDevices() {
     mSourceSigs.clear();
     mDestSigs.clear();
-    mNumDevices = 0;
+    mDevices.clear();
   }
 
   int getNumSourceSigs() { return mSourceSigs.size(); }
   int getNumDestSigs() { return mDestSigs.size(); }
 
  private:
+  static constexpr auto DIR_LABEL_HEIGHT = 20;
   static constexpr auto BASE_COLOUR = 0xFF52B85F;
   static constexpr auto MAX_IDX = 20;
   static constexpr auto DEFAULT_DEV_NAME_WIDTH = 100;
@@ -48,22 +58,30 @@ class MapViewComponent : public juce::Component {
   static constexpr auto MAPPING_GAP = 200;
 
   typedef struct Signal {
-    Signal(): sig(nullptr) {}
+    Signal() : sig(nullptr) {}
     Signal(mpr_sig sig, int yPos, juce::Colour colour) : sig(sig), yPos(yPos), colour(colour) {}
     mpr_sig sig;
     int yPos;
     juce::Colour colour;
   } Signal;
-  
+
+  typedef struct Map {
+    Map() : map(nullptr) {}
+    Map(mpr_map map, Signal sourceSig, Signal destSig) : map(map), signals(sourceSig, destSig) {}
+    mpr_map map;
+    std::pair<Signal, Signal> signals;
+  } Map;
+
   // Bookkeeping
+  std::vector<mpr_dev> mDevices;
   std::vector<Signal> mSourceSigs;
   std::vector<Signal> mDestSigs;
-  Signal mDragSource;  // Only non-null sig if currently dragging
-  Signal mHoverSig;  // Index of sig being hovered over
+  std::vector<Map> mMaps;
+  Signal mDragSource, mDragDest;  // Only non-null sig if currently dragging
+  Signal mHoverSig;               // Index of sig being hovered over
   juce::Point<int> mDragPoint;
   int mDevNameWidth = DEFAULT_DEV_NAME_WIDTH;
-  int mSigWidth; // Adjusted in resized() relative to dev name width
-  int mNumDevices = 0;
+  int mSigWidth;  // Adjusted in resized() relative to dev name width
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MapViewComponent)
 };

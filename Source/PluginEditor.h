@@ -34,7 +34,6 @@ class MapperVstAudioProcessorEditor : public juce::AudioProcessorEditor, public 
  private:
   // UI parameters
   static constexpr auto TOP_PANEL_HEIGHT = 80;
-  static constexpr auto DIR_LABEL_HEIGHT = 20;
   static constexpr auto SIG_BLOCK_WIDTH = 300;
   static constexpr auto BG_COLOUR_1 = 0xff595959;
   static constexpr auto BG_COLOUR_2 = 0xff4d4d4d;
