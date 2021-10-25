@@ -10,7 +10,6 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
-#include "mapper/mapper.h"
 #include "Components/MapViewComponent.h"
 
 #ifdef WIN32
@@ -20,7 +19,7 @@
 //==============================================================================
 /**
  */
-class MapperVstAudioProcessorEditor : public juce::AudioProcessorEditor, public juce::Timer {
+class MapperVstAudioProcessorEditor : public juce::AudioProcessorEditor {
  public:
   MapperVstAudioProcessorEditor(MapperVstAudioProcessor&);
   ~MapperVstAudioProcessorEditor() override;
@@ -29,18 +28,12 @@ class MapperVstAudioProcessorEditor : public juce::AudioProcessorEditor, public 
   void paint(juce::Graphics&) override;
   void resized() override;
 
-  void timerCallback() override;
-
  private:
   // UI parameters
   static constexpr auto TOP_PANEL_HEIGHT = 80;
   static constexpr auto SIG_BLOCK_WIDTH = 300;
   static constexpr auto BG_COLOUR_1 = 0xff595959;
   static constexpr auto BG_COLOUR_2 = 0xff4d4d4d;
-
-  static void graphCallbackHandler(mpr_graph g, mpr_obj o, mpr_graph_evt e, const void* v);
-
-  mpr_graph mGraph; // libmapper graph that keeps track of network
 
   // UI Components
   MapViewComponent mMapView;

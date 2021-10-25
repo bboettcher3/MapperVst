@@ -11,36 +11,13 @@
 
 //==============================================================================
 MapperVstAudioProcessorEditor::MapperVstAudioProcessorEditor(MapperVstAudioProcessor& p)
-    : AudioProcessorEditor(&p), audioProcessor(p) {
-  mGraph = mpr_graph_new(MPR_OBJ);
-  mpr_graph_add_cb(mGraph, graphCallbackHandler, MPR_OBJ, nullptr);
-  startTimer(3000);
-
+    : AudioProcessorEditor(&p), audioProcessor(p), mMapView(p.graph) {
   addAndMakeVisible(mMapView);
 
   setSize(800, 500);
 }
 
 MapperVstAudioProcessorEditor::~MapperVstAudioProcessorEditor() {
-  // if (mDummyDevice) mpr_dev_free(mDummyDevice);
-  if (mGraph) mpr_graph_free(mGraph);
-}
-
-void MapperVstAudioProcessorEditor::timerCallback() {
-  // Sync graph with network
-  mpr_graph_poll(mGraph, 500);
-
-  mpr_list devs = mpr_graph_get_list(mGraph, MPR_DEV);
-  while (devs) {
-    mpr_dev dev = *devs;
-    mMapView.checkAddDevice(dev);
-    devs = mpr_list_get_next(devs);
-  }
-  resized();
-}
-
-void MapperVstAudioProcessorEditor::graphCallbackHandler(mpr_graph g, mpr_obj o, mpr_graph_evt e, const void* v) {
-  // DBG("called back\n");
 }
 
 //==============================================================================

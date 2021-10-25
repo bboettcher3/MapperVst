@@ -12,12 +12,33 @@
 #include "MapViewComponent.h"
 
 //==============================================================================
-MapViewComponent::MapViewComponent() {
-  // In your constructor, you should add any child components, and
-  // initialise any special settings that your component needs.
+MapViewComponent::MapViewComponent(mpr_graph graph) : mGraph(graph) {
+  mpr_graph_add_cb(mGraph, deviceCallbackHandler, MPR_DEV, this);
+  mpr_graph_add_cb(mGraph, signalCallbackHandler, MPR_SIG, this);
+  mpr_graph_add_cb(mGraph, mapCallbackHandler, MPR_MAP, this);
+
+  // Init signal blocks
+  mpr_list devs = mpr_graph_get_list(graph, MPR_DEV);
+  while (devs) {
+    mpr_dev dev = *devs;
+    checkAddDevice(dev);
+    devs = mpr_list_get_next(devs);
+  }
+
+  // Init mappings
+  mpr_list maps = mpr_graph_get_list(graph, MPR_MAP);
+  while (maps) {
+    mpr_map map = *maps;
+    checkAddMap(map);
+    maps = mpr_list_get_next(maps);
+  }
 }
 
-MapViewComponent::~MapViewComponent() {}
+MapViewComponent::~MapViewComponent() {
+  mpr_graph_remove_cb(mGraph, deviceCallbackHandler, nullptr);
+  mpr_graph_remove_cb(mGraph, signalCallbackHandler, nullptr);
+  mpr_graph_remove_cb(mGraph, mapCallbackHandler, nullptr);
+}
 
 void MapViewComponent::paint(juce::Graphics& g) {
   // Show number of signals
@@ -156,6 +177,7 @@ void MapViewComponent::checkAddDevice(mpr_dev device) {
 
 void MapViewComponent::removeDevice(mpr_dev device) {
   std::remove_if(mDevices.begin(), mDevices.end(), [device](mpr_dev other) { return other == device; });
+  repaint();
 }
 
 void MapViewComponent::checkAddMap(mpr_map map) {
@@ -168,6 +190,7 @@ void MapViewComponent::checkAddMap(mpr_map map) {
 
 void MapViewComponent::removeMap(mpr_map map) {
   std::remove_if(mMaps.begin(), mMaps.end(), [map](Map other) { return other.map == map; });
+  repaint();
 }
 
 void MapViewComponent::checkAddSignal(mpr_sig signal) {
@@ -194,6 +217,7 @@ void MapViewComponent::checkAddSignal(mpr_sig signal) {
   }
   // Insert signal at the end of its device's list
   signals.insert(sigIter, newSig);
+  repaint();
 }
 
 void MapViewComponent::removeSignal(mpr_sig signal) {
@@ -258,4 +282,70 @@ void MapViewComponent::mouseUp(const juce::MouseEvent& e) {
     mDragPoint = juce::Point<int>();
   }
   repaint();
+}
+
+void MapViewComponent::deviceCallbackHandler(mpr_graph g, mpr_dev dev, mpr_graph_evt e, const void* context) {
+  if (context == nullptr) return;
+  MapViewComponent* component = (MapViewComponent*)context;
+  switch (e) {
+    case MPR_OBJ_NEW: {
+      component->checkAddDevice(dev);
+      break;
+    }
+    case MPR_OBJ_REM:
+    case MPR_OBJ_EXP: {
+      component->removeDevice(dev);
+      break;
+    }
+    case MPR_OBJ_MOD: {
+      // TODO
+      break;
+    }
+    default: {
+    }
+  }
+}
+
+void MapViewComponent::signalCallbackHandler(mpr_graph g, mpr_sig sig, mpr_graph_evt e, const void* context) {
+  if (context == nullptr) return;
+  MapViewComponent* component = (MapViewComponent*)context;
+  switch (e) {
+    case MPR_OBJ_NEW: {
+      component->checkAddSignal(sig);
+      break;
+    }
+    case MPR_OBJ_REM:
+    case MPR_OBJ_EXP: {
+      component->removeSignal(sig);
+      break;
+    }
+    case MPR_OBJ_MOD: {
+      // TODO
+      break;
+    }
+    default: {
+    }
+  }
+}
+
+void MapViewComponent::mapCallbackHandler(mpr_graph g, mpr_map map, mpr_graph_evt e, const void* context) {
+  if (context == nullptr) return;
+  MapViewComponent* component = (MapViewComponent*)context;
+  switch (e) {
+    case MPR_OBJ_NEW: {
+      component->checkAddMap(map);
+      break;
+    }
+    case MPR_OBJ_REM:
+    case MPR_OBJ_EXP: {
+      component->removeMap(map);
+      break;
+    }
+    case MPR_OBJ_MOD: {
+      // TODO
+      break;
+    }
+    default: {
+    }
+  }
 }

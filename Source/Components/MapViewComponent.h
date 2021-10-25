@@ -18,7 +18,7 @@
  */
 class MapViewComponent : public juce::Component {
  public:
-  MapViewComponent();
+  MapViewComponent(mpr_graph graph);
   ~MapViewComponent() override;
 
   void paint(juce::Graphics&) override;
@@ -72,7 +72,12 @@ class MapViewComponent : public juce::Component {
     std::pair<Signal, Signal> signals;
   } Map;
 
+  static void deviceCallbackHandler(mpr_graph g, mpr_dev dev, mpr_graph_evt e, const void* context);
+  static void signalCallbackHandler(mpr_graph g, mpr_sig sig, mpr_graph_evt e, const void* context);
+  static void mapCallbackHandler(mpr_graph g, mpr_map map, mpr_graph_evt e, const void* context);
+
   // Bookkeeping
+  mpr_graph mGraph;  // libmapper graph that keeps track of network (created by processor)
   std::vector<mpr_dev> mDevices;
   std::vector<Signal> mSourceSigs;
   std::vector<Signal> mDestSigs;
