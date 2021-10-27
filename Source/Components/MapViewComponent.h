@@ -30,22 +30,6 @@ class MapViewComponent : public juce::Component {
   void mouseUp(const juce::MouseEvent& e) override;
   void mouseExit(const juce::MouseEvent& e) override;
 
-  /* Graph changes */
-  // Conditionally adds mapping if not already added
-  void checkAddMap(mpr_map map);
-  void removeMap(mpr_map map);
-  // Conditionally adds device and its signals if not already added
-  void checkAddDevice(mpr_dev device);
-  void removeDevice(mpr_dev device);
-  // Conditionally adds signal to respective list if not already added
-  void checkAddSignal(mpr_sig signal);
-  void removeSignal(mpr_sig signal);
-  void clearDevices() {
-    mSourceSigs.clear();
-    mDestSigs.clear();
-    mDevices.clear();
-  }
-
   int getNumSourceSigs() { return mSourceSigs.size(); }
   int getNumDestSigs() { return mDestSigs.size(); }
 
@@ -71,6 +55,22 @@ class MapViewComponent : public juce::Component {
     mpr_map map;
     std::pair<Signal, Signal> signals;
   } Map;
+
+  /* Graph changes */
+  // Conditionally adds mapping if not already added
+  void checkAddMap(mpr_map map);
+  void removeMap(mpr_map map);
+  // Conditionally adds device and its signals if not already added
+  void checkAddDevice(mpr_dev device);
+  void removeDevice(mpr_dev device);
+  // Conditionally adds signal to respective list if not already added
+  Signal checkAddSignal(mpr_sig signal);
+  void removeSignal(mpr_sig signal);
+  void clearDevices() {
+    mSourceSigs.clear();
+    mDestSigs.clear();
+    mDevices.clear();
+  }
 
   static void deviceCallbackHandler(mpr_graph g, mpr_dev dev, mpr_graph_evt e, const void* context);
   static void signalCallbackHandler(mpr_graph g, mpr_sig sig, mpr_graph_evt e, const void* context);

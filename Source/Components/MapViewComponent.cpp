@@ -184,8 +184,13 @@ void MapViewComponent::checkAddMap(mpr_map map) {
   mpr_sig sourceSig = mpr_map_get_sig(map, 0, MPR_LOC_SRC);
   mpr_sig destSig = mpr_map_get_sig(map, 0, MPR_LOC_DST);
   jassert(sourceSig && destSig);
-  checkAddSignal(sourceSig);
-  checkAddSignal(destSig);
+  Signal sourceSignal = checkAddSignal(sourceSig);
+  Signal destSignal = checkAddSignal(destSig);
+  // Skip if already added
+  if (std::find_if(mMaps.begin(), mMaps.end(), [map](Map other) { return other.map == map; }) != mMaps.end())
+    return;
+  mMaps.push_back(Map(map, sourceSignal, destSignal));
+  repaint();
 }
 
 void MapViewComponent::removeMap(mpr_map map) {
@@ -193,12 +198,13 @@ void MapViewComponent::removeMap(mpr_map map) {
   repaint();
 }
 
-void MapViewComponent::checkAddSignal(mpr_sig signal) {
+MapViewComponent::Signal MapViewComponent::checkAddSignal(mpr_sig signal) {
   bool isSource = mpr_obj_get_prop_as_int32(signal, MPR_PROP_DIR, nullptr) == MPR_DIR_OUT;
   std::vector<Signal>& signals = isSource ? mSourceSigs : mDestSigs;
   // Skip if already added
-  if (std::find_if(signals.begin(), signals.end(), [signal](Signal other) { return other.sig == signal; }) != signals.end())
-    return;
+  auto iter = std::find_if(signals.begin(), signals.end(), [signal](Signal other) { return other.sig == signal; });
+  if (iter != signals.end())
+    return *iter;
   // Add signal to its list
   juce::Colour baseColour = juce::Colour(BASE_COLOUR);
   Signal newSig = Signal(signal, DIR_LABEL_HEIGHT + signals.size() * SIG_HEIGHT,
@@ -218,6 +224,7 @@ void MapViewComponent::checkAddSignal(mpr_sig signal) {
   // Insert signal at the end of its device's list
   signals.insert(sigIter, newSig);
   repaint();
+  return newSig;
 }
 
 void MapViewComponent::removeSignal(mpr_sig signal) {
