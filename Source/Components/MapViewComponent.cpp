@@ -165,13 +165,11 @@ void MapViewComponent::checkAddDevice(mpr_dev device) {
   // Skip if already added
   if (std::find(mDevices.begin(), mDevices.end(), device) != mDevices.end()) return;
   mpr_list sigs = mpr_dev_get_sigs(device, MPR_DIR_ANY);
-  juce::Colour baseColour = juce::Colour(BASE_COLOUR);
   while (sigs) {
     mpr_sig sig = *sigs;
     checkAddSignal(sig);
     sigs = mpr_list_get_next(sigs);
   }
-  mDevices.push_back(device);
   repaint();
 }
 
@@ -221,6 +219,9 @@ MapViewComponent::Signal MapViewComponent::checkAddSignal(mpr_sig signal) {
       break;
     }
   }
+
+  if (!foundDevice) mDevices.push_back(inputDevice);
+
   // Insert signal at the end of its device's list
   signals.insert(sigIter, newSig);
   repaint();

@@ -39,7 +39,7 @@ class MapViewComponent : public juce::Component {
   static constexpr auto MAX_IDX = 20;
   static constexpr auto DEFAULT_DEV_NAME_WIDTH = 100;
   static constexpr auto SIG_HEIGHT = 40;
-  static constexpr auto MAPPING_GAP = 200;
+  static constexpr auto MAPPING_GAP = 100;
 
   typedef struct Signal {
     Signal() : sig(nullptr) {}
