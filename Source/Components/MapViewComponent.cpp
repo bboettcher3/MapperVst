@@ -179,8 +179,8 @@ void MapViewComponent::removeDevice(mpr_dev device) {
 }
 
 void MapViewComponent::checkAddMap(mpr_map map) {
-  mpr_sig sourceSig = mpr_map_get_sig(map, 0, MPR_LOC_SRC);
-  mpr_sig destSig = mpr_map_get_sig(map, 0, MPR_LOC_DST);
+  mpr_sig sourceSig = *mpr_map_get_sigs(map, MPR_LOC_SRC);
+  mpr_sig destSig = *mpr_map_get_sigs(map, MPR_LOC_DST);
   jassert(sourceSig && destSig);
   Signal sourceSignal = checkAddSignal(sourceSig);
   Signal destSignal = checkAddSignal(destSig);

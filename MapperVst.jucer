@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="SlUItD" name="MapperVst" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1"
-              headerPath="C:\Users\brady\Documents\GitHub\McGill\libmapper\include&#10;C:\Users\brady\Documents\GitHub\McGill\liblo&#10;C:\Users\brady\Documents\GitHub\McGill\liblo\cmake\build&#10;C:\Users\brady\Documents\GitHub\McGill\zlib-msvc14-x64.1.2.11.7795\build\native\include"
+              headerPath="C:\Users\brady\Documents\GitHub\libmapper\include&#10;C:\Users\brady\Documents\GitHub\libmapper\build\liblo\liblo-master&#10;C:\Users\brady\Documents\GitHub\libmapper\build\liblo\liblo-master\cmake\build&#10;C:\Users\brady\Documents\GitHub\libmapper\build\zlib\msvc2017_64\include"
               defines="HAVE_WINSOCK2_H">
   <MAINGROUP id="oqNAdc" name="MapperVst">
     <GROUP id="{C22748AE-EC27-E495-8797-6B540AC21C18}" name="Source">
@@ -23,7 +23,7 @@
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
   <EXPORTFORMATS>
-    <VS2019 targetFolder="Builds/VisualStudio2019" externalLibraries="C:\Users\brady\Documents\GitHub\McGill\zlib-msvc14-x64.1.2.11.7795\build\native\lib_debug\zlibd.lib&#10;C:\Users\brady\Documents\GitHub\McGill\liblo\cmake\build\Debug\liblo.lib&#10;C:\Users\brady\Documents\GitHub\McGill\libmapper\build\Debug\libmapper.lib">
+    <VS2019 targetFolder="Builds/VisualStudio2019" externalLibraries="C:\Users\brady\Documents\GitHub\zlib-msvc14-x64.1.2.11.7795\build\native\lib_debug\zlibd.lib&#10;C:\Users\brady\Documents\GitHub\liblo\cmake\build\Debug\liblo.lib&#10;C:\Users\brady\Documents\GitHub\libmapper\build\Debug\libmapper.lib">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="MapperVst"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="MapperVst"/>
@@ -43,6 +43,26 @@
         <MODULEPATH id="juce_gui_extra" path="../../../../../../JUCE/modules"/>
       </MODULEPATHS>
     </VS2019>
+    <VS2022 targetFolder="Builds/VisualStudio2022" externalLibraries="C:\Users\brady\Documents\GitHub\libmapper\build\zlib\msvc2017_64\lib\zlib\zlib.lib&#10;C:\Users\brady\Documents\GitHub\libmapper\build\liblo\liblo-master\cmake\build\Debug\liblo.lib&#10;C:\Users\brady\Documents\GitHub\libmapper\build\Debug\libmapper.lib">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION isDebug="0" name="Release"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="C:\Users\brady\Documents\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_devices" path="C:\Users\brady\Documents\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_formats" path="C:\Users\brady\Documents\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="C:\Users\brady\Documents\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_processors" path="C:\Users\brady\Documents\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_utils" path="C:\Users\brady\Documents\JUCE\modules"/>
+        <MODULEPATH id="juce_core" path="C:\Users\brady\Documents\JUCE\modules"/>
+        <MODULEPATH id="juce_data_structures" path="C:\Users\brady\Documents\JUCE\modules"/>
+        <MODULEPATH id="juce_events" path="C:\Users\brady\Documents\JUCE\modules"/>
+        <MODULEPATH id="juce_graphics" path="C:\Users\brady\Documents\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_basics" path="C:\Users\brady\Documents\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_extra" path="C:\Users\brady\Documents\JUCE\modules"/>
+      </MODULEPATHS>
+    </VS2022>
   </EXPORTFORMATS>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
