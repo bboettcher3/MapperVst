@@ -11,14 +11,15 @@
 
 //==============================================================================
 MapperVstAudioProcessorEditor::MapperVstAudioProcessorEditor(MapperVstAudioProcessor& p)
-    : AudioProcessorEditor(&p), audioProcessor(p), mMapView(p.graph) {
-  addAndMakeVisible(mMapView);
+    : AudioProcessorEditor(&p), audioProcessor(p), mListView(p.graph) {
+  addAndMakeVisible(mFileOpenSave);
+  addAndMakeVisible(mViewSelect);
+  addAndMakeVisible(mListView);
 
   setSize(800, 500);
 }
 
-MapperVstAudioProcessorEditor::~MapperVstAudioProcessorEditor() {
-}
+MapperVstAudioProcessorEditor::~MapperVstAudioProcessorEditor() {}
 
 //==============================================================================
 void MapperVstAudioProcessorEditor::paint(juce::Graphics& g) {
@@ -33,8 +34,11 @@ void MapperVstAudioProcessorEditor::paint(juce::Graphics& g) {
 void MapperVstAudioProcessorEditor::resized() {
   auto r = getLocalBounds();
   // Remove top panel
-  r.removeFromTop(TOP_PANEL_HEIGHT);
+  auto topPanel = r.removeFromTop(TOP_PANEL_HEIGHT);
 
-  // Map view
-  mMapView.setBounds(r);
+  mFileOpenSave.setBounds(topPanel.removeFromLeft(getWidth() * 0.1f));
+  mViewSelect.setBounds(topPanel.removeFromLeft(getWidth() * 0.2f));
+
+  // List view
+  mListView.setBounds(r);
 }

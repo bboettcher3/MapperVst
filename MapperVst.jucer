@@ -5,12 +5,24 @@
               headerPath="C:\Users\brady\Documents\GitHub\libmapper\include&#10;C:\Users\brady\Documents\GitHub\libmapper\build\liblo\liblo-master&#10;C:\Users\brady\Documents\GitHub\libmapper\build\liblo\liblo-master\cmake\build&#10;C:\Users\brady\Documents\GitHub\libmapper\build\zlib\msvc2017_64\include"
               defines="HAVE_WINSOCK2_H">
   <MAINGROUP id="oqNAdc" name="MapperVst">
+    <GROUP id="{5AAA288D-71E3-ECCF-C25C-C7BFD56122FC}" name="Resources">
+      <FILE id="aAfPjG" name="listViewIcon.png" compile="0" resource="1"
+            file="Source/Resources/listViewIcon.png"/>
+    </GROUP>
     <GROUP id="{C22748AE-EC27-E495-8797-6B540AC21C18}" name="Source">
       <GROUP id="{17899BD0-47B0-70E9-741D-F6BF873F247F}" name="Components">
-        <FILE id="jNj3sD" name="MapViewComponent.cpp" compile="1" resource="0"
-              file="Source/Components/MapViewComponent.cpp"/>
-        <FILE id="j3ujrR" name="MapViewComponent.h" compile="0" resource="0"
-              file="Source/Components/MapViewComponent.h"/>
+        <FILE id="jWPbDV" name="FileOpenSaveComponent.cpp" compile="1" resource="0"
+              file="Source/Components/FileOpenSaveComponent.cpp"/>
+        <FILE id="YMeA76" name="FileOpenSaveComponent.h" compile="0" resource="0"
+              file="Source/Components/FileOpenSaveComponent.h"/>
+        <FILE id="jNj3sD" name="ListViewComponent.cpp" compile="1" resource="0"
+              file="Source/Components/ListViewComponent.cpp"/>
+        <FILE id="j3ujrR" name="ListViewComponent.h" compile="0" resource="0"
+              file="Source/Components/ListViewComponent.h"/>
+        <FILE id="UwpWug" name="ViewSelectComponent.cpp" compile="1" resource="0"
+              file="Source/Components/ViewSelectComponent.cpp"/>
+        <FILE id="Q21IkT" name="ViewSelectComponent.h" compile="0" resource="0"
+              file="Source/Components/ViewSelectComponent.h"/>
       </GROUP>
       <FILE id="x9WRLi" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>

@@ -16,10 +16,10 @@
 //==============================================================================
 /*
  */
-class MapViewComponent : public juce::Component {
+class ListViewComponent : public juce::Component {
  public:
-  MapViewComponent(mpr_graph graph);
-  ~MapViewComponent() override;
+  ListViewComponent(mpr_graph graph);
+  ~ListViewComponent() override;
 
   void paint(juce::Graphics&) override;
   void resized() override;
@@ -88,5 +88,5 @@ class MapViewComponent : public juce::Component {
   int mDevNameWidth = DEFAULT_DEV_NAME_WIDTH;
   int mSigWidth;  // Adjusted in resized() relative to dev name width
 
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MapViewComponent)
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ListViewComponent)
 };

@@ -10,7 +10,9 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
-#include "Components/MapViewComponent.h"
+#include "Components/ListViewComponent.h"
+#include "Components/FileOpenSaveComponent.h"
+#include "Components/ViewSelectComponent.h"
 
 #ifdef WIN32
 #define _WINSOCKAPI_  // for winsock1/2 conflicts
@@ -36,7 +38,9 @@ class MapperVstAudioProcessorEditor : public juce::AudioProcessorEditor {
   static constexpr auto BG_COLOUR_2 = 0xff4d4d4d;
 
   // UI Components
-  MapViewComponent mMapView;
+  FileOpenSaveComponent mFileOpenSave;
+  ViewSelectComponent mViewSelect;
+  ListViewComponent mListView;
 
   // This reference is provided as a quick way for your editor to
   // access the processor object that created it.

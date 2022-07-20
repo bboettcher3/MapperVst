@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    MapViewComponent.cpp
+    ListViewComponent.cpp
     Created: 16 Oct 2021 9:46:45pm
     Author:  brady
 
@@ -9,10 +9,10 @@
 */
 
 #include <JuceHeader.h>
-#include "MapViewComponent.h"
+#include "ListViewComponent.h"
 
 //==============================================================================
-MapViewComponent::MapViewComponent(mpr_graph graph) : mGraph(graph) {
+ListViewComponent::ListViewComponent(mpr_graph graph) : mGraph(graph) {
   mpr_graph_add_cb(mGraph, deviceCallbackHandler, MPR_DEV, this);
   mpr_graph_add_cb(mGraph, signalCallbackHandler, MPR_SIG, this);
   mpr_graph_add_cb(mGraph, mapCallbackHandler, MPR_MAP, this);
@@ -34,13 +34,13 @@ MapViewComponent::MapViewComponent(mpr_graph graph) : mGraph(graph) {
   }
 }
 
-MapViewComponent::~MapViewComponent() {
+ListViewComponent::~ListViewComponent() {
   mpr_graph_remove_cb(mGraph, deviceCallbackHandler, nullptr);
   mpr_graph_remove_cb(mGraph, signalCallbackHandler, nullptr);
   mpr_graph_remove_cb(mGraph, mapCallbackHandler, nullptr);
 }
 
-void MapViewComponent::paint(juce::Graphics& g) {
+void ListViewComponent::paint(juce::Graphics& g) {
   // Show number of signals
   auto dirLabelPanel = getLocalBounds().removeFromTop(DIR_LABEL_HEIGHT);
   g.setColour(juce::Colours::white);
@@ -159,9 +159,9 @@ void MapViewComponent::paint(juce::Graphics& g) {
   }
 }
 
-void MapViewComponent::resized() { mSigWidth = (getWidth() / 2.0f) - MAPPING_GAP - mDevNameWidth; }
+void ListViewComponent::resized() { mSigWidth = (getWidth() / 2.0f) - MAPPING_GAP - mDevNameWidth; }
 
-void MapViewComponent::checkAddDevice(mpr_dev device) {
+void ListViewComponent::checkAddDevice(mpr_dev device) {
   // Skip if already added
   if (std::find(mDevices.begin(), mDevices.end(), device) != mDevices.end()) return;
   mpr_list sigs = mpr_dev_get_sigs(device, MPR_DIR_ANY);
@@ -173,12 +173,12 @@ void MapViewComponent::checkAddDevice(mpr_dev device) {
   repaint();
 }
 
-void MapViewComponent::removeDevice(mpr_dev device) {
+void ListViewComponent::removeDevice(mpr_dev device) {
   std::remove_if(mDevices.begin(), mDevices.end(), [device](mpr_dev other) { return other == device; });
   repaint();
 }
 
-void MapViewComponent::checkAddMap(mpr_map map) {
+void ListViewComponent::checkAddMap(mpr_map map) {
   mpr_sig sourceSig = *mpr_map_get_sigs(map, MPR_LOC_SRC);
   mpr_sig destSig = *mpr_map_get_sigs(map, MPR_LOC_DST);
   jassert(sourceSig && destSig);
@@ -191,12 +191,12 @@ void MapViewComponent::checkAddMap(mpr_map map) {
   repaint();
 }
 
-void MapViewComponent::removeMap(mpr_map map) {
+void ListViewComponent::removeMap(mpr_map map) {
   std::remove_if(mMaps.begin(), mMaps.end(), [map](Map other) { return other.map == map; });
   repaint();
 }
 
-MapViewComponent::Signal MapViewComponent::checkAddSignal(mpr_sig signal) {
+ListViewComponent::Signal ListViewComponent::checkAddSignal(mpr_sig signal) {
   bool isSource = mpr_obj_get_prop_as_int32(signal, MPR_PROP_DIR, nullptr) == MPR_DIR_OUT;
   std::vector<Signal>& signals = isSource ? mSourceSigs : mDestSigs;
   // Skip if already added
@@ -228,13 +228,13 @@ MapViewComponent::Signal MapViewComponent::checkAddSignal(mpr_sig signal) {
   return newSig;
 }
 
-void MapViewComponent::removeSignal(mpr_sig signal) {
+void ListViewComponent::removeSignal(mpr_sig signal) {
   bool isSource = mpr_obj_get_prop_as_int32(signal, MPR_PROP_DIR, nullptr) == MPR_DIR_OUT;
   std::vector<Signal>& signals = isSource ? mSourceSigs : mDestSigs;
   std::remove_if(signals.begin(), signals.end(), [signal](Signal other) { return other.sig == signal; });
 }
 
-void MapViewComponent::mouseMove(const juce::MouseEvent& e) {
+void ListViewComponent::mouseMove(const juce::MouseEvent& e) {
   mHoverSig = Signal();
   if (e.x < getWidth() / 2.0f) {
     for (Signal& sig : mSourceSigs) {
@@ -253,7 +253,7 @@ void MapViewComponent::mouseMove(const juce::MouseEvent& e) {
   repaint();
 }
 
-void MapViewComponent::mouseDrag(const juce::MouseEvent& e) {
+void ListViewComponent::mouseDrag(const juce::MouseEvent& e) {
   // Signal mapping drag
   mDragDest = Signal();
   if (mDragSource.sig != nullptr) {
@@ -268,18 +268,18 @@ void MapViewComponent::mouseDrag(const juce::MouseEvent& e) {
   }
 }
 
-void MapViewComponent::mouseExit(const juce::MouseEvent& e) {
+void ListViewComponent::mouseExit(const juce::MouseEvent& e) {
   mHoverSig = Signal();
   repaint();
 }
 
-void MapViewComponent::mouseDown(const juce::MouseEvent& e) {
+void ListViewComponent::mouseDown(const juce::MouseEvent& e) {
   if (mHoverSig.sig != nullptr) {
     mDragSource = mHoverSig;
   }
 }
 
-void MapViewComponent::mouseUp(const juce::MouseEvent& e) {
+void ListViewComponent::mouseUp(const juce::MouseEvent& e) {
   if (mDragSource.sig != nullptr && mDragDest.sig != nullptr) {
     // Add new mapping
     mpr_map newMap = mpr_map_new(1, &mDragSource.sig, 1, &mDragDest.sig);
@@ -292,9 +292,9 @@ void MapViewComponent::mouseUp(const juce::MouseEvent& e) {
   repaint();
 }
 
-void MapViewComponent::deviceCallbackHandler(mpr_graph g, mpr_dev dev, mpr_graph_evt e, const void* context) {
+void ListViewComponent::deviceCallbackHandler(mpr_graph g, mpr_dev dev, mpr_graph_evt e, const void* context) {
   if (context == nullptr) return;
-  MapViewComponent* component = (MapViewComponent*)context;
+  ListViewComponent* component = (ListViewComponent*)context;
   switch (e) {
     case MPR_OBJ_NEW: {
       component->checkAddDevice(dev);
@@ -314,9 +314,9 @@ void MapViewComponent::deviceCallbackHandler(mpr_graph g, mpr_dev dev, mpr_graph
   }
 }
 
-void MapViewComponent::signalCallbackHandler(mpr_graph g, mpr_sig sig, mpr_graph_evt e, const void* context) {
+void ListViewComponent::signalCallbackHandler(mpr_graph g, mpr_sig sig, mpr_graph_evt e, const void* context) {
   if (context == nullptr) return;
-  MapViewComponent* component = (MapViewComponent*)context;
+  ListViewComponent* component = (ListViewComponent*)context;
   switch (e) {
     case MPR_OBJ_NEW: {
       component->checkAddSignal(sig);
@@ -336,9 +336,9 @@ void MapViewComponent::signalCallbackHandler(mpr_graph g, mpr_sig sig, mpr_graph
   }
 }
 
-void MapViewComponent::mapCallbackHandler(mpr_graph g, mpr_map map, mpr_graph_evt e, const void* context) {
+void ListViewComponent::mapCallbackHandler(mpr_graph g, mpr_map map, mpr_graph_evt e, const void* context) {
   if (context == nullptr) return;
-  MapViewComponent* component = (MapViewComponent*)context;
+  ListViewComponent* component = (ListViewComponent*)context;
   switch (e) {
     case MPR_OBJ_NEW: {
       component->checkAddMap(map);
