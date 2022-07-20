@@ -11,10 +11,12 @@
 
 //==============================================================================
 MapperVstAudioProcessorEditor::MapperVstAudioProcessorEditor(MapperVstAudioProcessor& p)
-    : AudioProcessorEditor(&p), audioProcessor(p), mListView(p.graph) {
+    : AudioProcessorEditor(&p), audioProcessor(p), mListView(p.mapperManager) {
   addAndMakeVisible(mFileOpenSave);
   addAndMakeVisible(mViewSelect);
   addAndMakeVisible(mListView);
+
+  p.mapperManager.refreshGraph();
 
   setSize(800, 500);
 }

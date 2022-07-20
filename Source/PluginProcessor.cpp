@@ -22,14 +22,12 @@ MapperVstAudioProcessor::MapperVstAudioProcessor()
                        )
 #endif
 {
-  graph = mpr_graph_new(MPR_OBJ);
 
   startTimer(3000);
 }
 
 MapperVstAudioProcessor::~MapperVstAudioProcessor()
 {
-  if (graph) mpr_graph_free(graph);
 }
 
 //==============================================================================
@@ -194,7 +192,4 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
     return new MapperVstAudioProcessor();
 }
 
-void MapperVstAudioProcessor::timerCallback() {
-  // Sync graph with network
-  mpr_graph_poll(graph, 500);
-}
+void MapperVstAudioProcessor::timerCallback() { mapperManager.refreshGraph(); }

@@ -9,7 +9,7 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "mapper/mapper.h"
+#include "MapperManager.h"
 
 //==============================================================================
 /**
@@ -55,7 +55,7 @@ class MapperVstAudioProcessor : public juce::AudioProcessor, public juce::Timer 
 
   void timerCallback() override;
 
-  mpr_graph graph;  // libmapper graph that keeps track of network
+  MapperManager mapperManager;  // libmapper manager that keeps track of graph
 
  private:  
 

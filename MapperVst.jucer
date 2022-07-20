@@ -24,6 +24,9 @@
         <FILE id="Q21IkT" name="ViewSelectComponent.h" compile="0" resource="0"
               file="Source/Components/ViewSelectComponent.h"/>
       </GROUP>
+      <FILE id="NI747a" name="MapperManager.cpp" compile="1" resource="0"
+            file="Source/MapperManager.cpp"/>
+      <FILE id="rM8jei" name="MapperManager.h" compile="0" resource="0" file="Source/MapperManager.h"/>
       <FILE id="x9WRLi" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="llOOsf" name="PluginProcessor.h" compile="0" resource="0"
