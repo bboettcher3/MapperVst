@@ -24,8 +24,11 @@ class ListSignalComponent : public juce::Component {
   void paint(juce::Graphics&) override;
   void resized() override;
 
+  MapperManager::Signal& getSignal() { return mSignal; }
+
  private:
   MapperManager::Signal& mSignal;
+  juce::String mSigName;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ListSignalComponent)
 };

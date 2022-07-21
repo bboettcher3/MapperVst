@@ -15,7 +15,7 @@
 ListSignalComponent::ListSignalComponent(MapperManager::Signal& signal) : mSignal(signal) {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
-
+  mSigName = juce::String(mpr_obj_get_prop_as_str(mSignal.sig, MPR_PROP_NAME, nullptr));
 }
 
 ListSignalComponent::~ListSignalComponent()
@@ -38,7 +38,7 @@ void ListSignalComponent::paint (juce::Graphics& g)
 
     g.setColour (juce::Colours::white);
     g.setFont (14.0f);
-    g.drawText ("ListSignalComponent", getLocalBounds(),
+    g.drawText(mSigName, getLocalBounds(),
                 juce::Justification::centred, true);   // draw some placeholder text
 }
 

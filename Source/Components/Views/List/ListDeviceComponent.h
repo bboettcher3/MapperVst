@@ -17,9 +17,9 @@
 //==============================================================================
 /*
  */
-class ListDeviceComponent : public juce::Component {
+class ListDeviceComponent : public juce::Component, MapperManager::SignalsListener {
  public:
-  ListDeviceComponent(MapperManager::Device& device, mpr_dir dir);
+  ListDeviceComponent(MapperManager& manager, MapperManager::Device& device, mpr_dir dir);
   ~ListDeviceComponent() override;
 
   void paint(juce::Graphics&) override;
@@ -28,21 +28,30 @@ class ListDeviceComponent : public juce::Component {
   void mouseMove(const juce::MouseEvent& e) override;
   void mouseExit(const juce::MouseEvent& e) override;
 
+  void signalAdded(MapperManager::Signal& signal) override;
+  void signalRemoved(MapperManager::Signal& signal) override;
+
+  MapperManager::Device& getDevice() { return mDevice; }
+
  private:
   static constexpr int SIGNAL_HEIGHT = 30;
-  static constexpr float DEV_NAME_WIDTH_PERC = 0.3f;
-  static constexpr float DEV_ICONS_WIDTH_PERC = 0.1f;
 
-  MapperManager::Device& mDevice;
-  mpr_dir mDir;
+
+
 
   // Bookkeeping
-  bool mIsExpanded = false;
+  MapperManager& mMapperManager;
+  MapperManager::Device& mDevice;
+  juce::String mDevName;
+  mpr_dir mDir;
+  bool mIsExpanded = true;
   
   // Components
   juce::OwnedArray<ListSignalComponent> mSignals;
   juce::ImageButton mBtnCollapse;
   juce::ImageButton mBtnInfo;
+
+  void updateSize();
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ListDeviceComponent)
 };

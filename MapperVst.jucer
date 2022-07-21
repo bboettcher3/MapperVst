@@ -8,6 +8,8 @@
     <GROUP id="{5AAA288D-71E3-ECCF-C25C-C7BFD56122FC}" name="Resources">
       <FILE id="q5Czwc" name="arrowDownIcon.png" compile="0" resource="1"
             file="Source/Resources/arrowDownIcon.png"/>
+      <FILE id="OtTq8T" name="arrowLeftIcon.png" compile="0" resource="1"
+            file="Source/Resources/arrowLeftIcon.png"/>
       <FILE id="nMWAlH" name="arrowRightIcon.png" compile="0" resource="1"
             file="Source/Resources/arrowRightIcon.png"/>
       <FILE id="hcoHcU" name="infoIcon.png" compile="0" resource="1" file="Source/Resources/infoIcon.png"/>

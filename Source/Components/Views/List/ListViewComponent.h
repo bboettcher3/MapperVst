@@ -17,10 +17,10 @@
 //==============================================================================
 /*
  */
-class ListViewComponent : public juce::Component {
+class ListViewComponent : public juce::Component, MapperManager::DevicesListener {
  public:
   ListViewComponent(MapperManager& manager);
-  ~ListViewComponent() {}
+  ~ListViewComponent() override;
 
   void paint(juce::Graphics&) override;
   void resized() override;
@@ -28,9 +28,16 @@ class ListViewComponent : public juce::Component {
   void mouseDrag(const juce::MouseEvent& e) override;
   void mouseUp(const juce::MouseEvent& e) override;
 
+  void deviceAdded(MapperManager::Device& device) override;
+  void deviceModified(MapperManager::Device& device) override;
+  void deviceRemoved(MapperManager::Device& device) override;
+
+  MapperManager& getMapperManager() { return mMapperManager; }  // called from device callback
+
  private:
   static constexpr auto DIR_LABEL_HEIGHT = 20;
   static constexpr auto MAPPING_GAP = 100;
+
 
   // Bookkeeping
   MapperManager& mMapperManager;
