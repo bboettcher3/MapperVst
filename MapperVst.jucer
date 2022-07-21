@@ -3,26 +3,45 @@
 <JUCERPROJECT id="SlUItD" name="MapperVst" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1"
               headerPath="C:\Users\brady\Documents\GitHub\libmapper\include&#10;C:\Users\brady\Documents\GitHub\libmapper\build\liblo\liblo-master&#10;C:\Users\brady\Documents\GitHub\libmapper\build\liblo\liblo-master\cmake\build&#10;C:\Users\brady\Documents\GitHub\libmapper\build\zlib\msvc2017_64\include"
-              defines="HAVE_WINSOCK2_H">
+              defines="HAVE_WINSOCK2_H" pluginVST3Category="Modulation">
   <MAINGROUP id="oqNAdc" name="MapperVst">
     <GROUP id="{5AAA288D-71E3-ECCF-C25C-C7BFD56122FC}" name="Resources">
+      <FILE id="q5Czwc" name="arrowDownIcon.png" compile="0" resource="1"
+            file="Source/Resources/arrowDownIcon.png"/>
+      <FILE id="nMWAlH" name="arrowRightIcon.png" compile="0" resource="1"
+            file="Source/Resources/arrowRightIcon.png"/>
+      <FILE id="hcoHcU" name="infoIcon.png" compile="0" resource="1" file="Source/Resources/infoIcon.png"/>
       <FILE id="aAfPjG" name="listViewIcon.png" compile="0" resource="1"
             file="Source/Resources/listViewIcon.png"/>
     </GROUP>
     <GROUP id="{C22748AE-EC27-E495-8797-6B540AC21C18}" name="Source">
       <GROUP id="{17899BD0-47B0-70E9-741D-F6BF873F247F}" name="Components">
-        <FILE id="jWPbDV" name="FileOpenSaveComponent.cpp" compile="1" resource="0"
-              file="Source/Components/FileOpenSaveComponent.cpp"/>
-        <FILE id="YMeA76" name="FileOpenSaveComponent.h" compile="0" resource="0"
-              file="Source/Components/FileOpenSaveComponent.h"/>
-        <FILE id="jNj3sD" name="ListViewComponent.cpp" compile="1" resource="0"
-              file="Source/Components/ListViewComponent.cpp"/>
-        <FILE id="j3ujrR" name="ListViewComponent.h" compile="0" resource="0"
-              file="Source/Components/ListViewComponent.h"/>
-        <FILE id="UwpWug" name="ViewSelectComponent.cpp" compile="1" resource="0"
-              file="Source/Components/ViewSelectComponent.cpp"/>
-        <FILE id="Q21IkT" name="ViewSelectComponent.h" compile="0" resource="0"
-              file="Source/Components/ViewSelectComponent.h"/>
+        <GROUP id="{B741FF4C-D27B-6FFB-8F13-C88527AA235C}" name="Menus">
+          <FILE id="kRNoFZ" name="FileOpenSaveComponent.cpp" compile="1" resource="0"
+                file="Source/Components/Menus/FileOpenSaveComponent.cpp"/>
+          <FILE id="qLe478" name="FileOpenSaveComponent.h" compile="0" resource="0"
+                file="Source/Components/Menus/FileOpenSaveComponent.h"/>
+          <FILE id="xQksnO" name="ViewSelectComponent.cpp" compile="1" resource="0"
+                file="Source/Components/Menus/ViewSelectComponent.cpp"/>
+          <FILE id="p85Pzb" name="ViewSelectComponent.h" compile="0" resource="0"
+                file="Source/Components/Menus/ViewSelectComponent.h"/>
+        </GROUP>
+        <GROUP id="{13C6917D-9A13-955F-C78A-F36C5C021E1D}" name="Views">
+          <GROUP id="{53999A9B-4ACB-5059-7899-56C6BC5B0A58}" name="List">
+            <FILE id="SzNX2D" name="ListDeviceComponent.cpp" compile="1" resource="0"
+                  file="Source/Components/Views/List/ListDeviceComponent.cpp"/>
+            <FILE id="mHTGDc" name="ListDeviceComponent.h" compile="0" resource="0"
+                  file="Source/Components/Views/List/ListDeviceComponent.h"/>
+            <FILE id="d3K1rz" name="ListSignalComponent.cpp" compile="1" resource="0"
+                  file="Source/Components/Views/List/ListSignalComponent.cpp"/>
+            <FILE id="X1fOyu" name="ListSignalComponent.h" compile="0" resource="0"
+                  file="Source/Components/Views/List/ListSignalComponent.h"/>
+            <FILE id="GsmJcV" name="ListViewComponent.cpp" compile="1" resource="0"
+                  file="Source/Components/Views/List/ListViewComponent.cpp"/>
+            <FILE id="l9A2Ng" name="ListViewComponent.h" compile="0" resource="0"
+                  file="Source/Components/Views/List/ListViewComponent.h"/>
+          </GROUP>
+        </GROUP>
       </GROUP>
       <FILE id="NI747a" name="MapperManager.cpp" compile="1" resource="0"
             file="Source/MapperManager.cpp"/>

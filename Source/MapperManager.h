@@ -24,16 +24,22 @@ class MapperManager {
     mpr_sig sig;
     juce::Colour colour;
   } Signal;
+    
+  typedef struct Device {
+    Device() : dev(nullptr) {}
+    Device(mpr_dev dev, juce::Colour colour) : dev(dev), colour(colour) {}
+    mpr_dev dev;
+    juce::Colour colour;
+    std::vector<Signal> sourceSignals;
+    std::vector<Signal> destSignals;
+  } Device;
 
   typedef struct Map {
     Map() : map(nullptr) {}
-    Map(mpr_map map, Signal sourceSig, Signal destSig) : map(map), signals(sourceSig, destSig) {}
+    Map(mpr_map map, Signal* sourceSignal, Signal* destSignal) : map(map), signals(sourceSignal, destSignal) {}
     mpr_map map;
-    std::pair<Signal, Signal> signals;
+    std::pair<Signal*, Signal*> signals;
   } Map;
-
-  int getNumSourceSigs() { return sourceSigs.size(); }
-  int getNumDestSigs() { return destSigs.size(); }
   
   /* Graph changes */
   void refreshGraph();
@@ -41,21 +47,14 @@ class MapperManager {
   void checkAddMap(mpr_map map);
   void removeMap(mpr_map map);
   // Conditionally adds device and its signals if not already added
-  void checkAddDevice(mpr_dev device);
-  void removeDevice(mpr_dev device);
+  void checkAddDevice(mpr_dev dev);
+  void removeDevice(mpr_dev dev);
   // Conditionally adds signal to respective list if not already added
-  Signal checkAddSignal(mpr_sig signal);
-  void removeSignal(mpr_sig signal);
-  void clearDevices() {
-    sourceSigs.clear();
-    destSigs.clear();
-    devices.clear();
-  }
+  Signal& checkAddSignal(mpr_sig sig);
+  void removeSignal(mpr_sig sig);
 
   mpr_graph graph;  // libmapper graph that keeps track of network (created by processor)
-  std::vector<mpr_dev> devices;
-  std::vector<Signal> sourceSigs;
-  std::vector<Signal> destSigs;
+  std::vector<Device> devices;
   std::vector<Map> maps;
 
  private:
@@ -65,4 +64,6 @@ class MapperManager {
 
   static constexpr auto BASE_COLOUR = 0xFF52B85F;
   static constexpr auto MAX_IDX = 20;
+
+  Device& getDevice(mpr_sig sig);
 };

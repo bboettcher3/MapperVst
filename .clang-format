@@ -1,6 +1,6 @@
 ---
 # Use defaults from the Google style with the following exceptions:
 BasedOnStyle: Google
-ColumnLimit: 126
+ColumnLimit: 110
 SortIncludes: false
 ...

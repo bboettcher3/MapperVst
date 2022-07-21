@@ -10,9 +10,9 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
-#include "Components/ListViewComponent.h"
-#include "Components/FileOpenSaveComponent.h"
-#include "Components/ViewSelectComponent.h"
+#include "Components/Views/List/ListViewComponent.h"
+#include "Components/Menus/FileOpenSaveComponent.h"
+#include "Components/Menus/ViewSelectComponent.h"
 
 #ifdef WIN32
 #define _WINSOCKAPI_  // for winsock1/2 conflicts
