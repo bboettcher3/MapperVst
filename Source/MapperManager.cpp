@@ -9,6 +9,7 @@
 */
 
 #include "MapperManager.h"
+#include "Utilities.h"
 
 //==============================================================================
 MapperManager::MapperManager() {
@@ -42,15 +43,19 @@ MapperManager::~MapperManager() {
 }
 
 void MapperManager::addListener(DevicesListener* newListener) {
+  const juce::ScopedLock sl(mListenerLock);
   mDevicesListeners.addIfNotAlreadyThere(newListener);
 }
 void MapperManager::addListener(SignalsListener* newListener) {
+  const juce::ScopedLock sl(mListenerLock);
   mSignalsListeners.addIfNotAlreadyThere(newListener);
 }
 void MapperManager::removeListener(DevicesListener* listener) {
+  const juce::ScopedLock sl(mListenerLock);
   mDevicesListeners.removeFirstMatchingValue(listener);
 }
 void MapperManager::removeListener(SignalsListener* listener) {
+  const juce::ScopedLock sl(mListenerLock);
   mSignalsListeners.removeFirstMatchingValue(listener);
 }
 
@@ -61,12 +66,15 @@ void MapperManager::refreshGraph() {
 
 void MapperManager::checkAddDevice(mpr_dev device) {
   // Skip if already added
-  if (std::find_if(devices.begin(), devices.end(), [device](Device other) { return other.dev == device; }) !=
+  if (std::find_if(devices.begin(), devices.end(), [device](Device* other) { return other->dev == device; }) !=
       devices.end())
     return;
 
-  /* TODO: device colors */
-  devices.push_back(Device(device, juce::Colours::palegreen));
+  mCurDeviceColourIdx =
+      (mCurDeviceColourIdx + 1 + (Utilities::NUM_COLOURS / 2)) % Utilities::NUM_COLOURS;
+  juce::Colour devColour = Utilities::getRainbow12Colour(mCurDeviceColourIdx);
+  Device* newDev = new Device(device, devColour);
+  devices.add(newDev);
   DBG("add dev: " + juce::String(mpr_obj_get_prop_as_str(device, MPR_PROP_NAME, nullptr)));
 
   mpr_list sigs = mpr_dev_get_sigs(device, MPR_DIR_ANY);
@@ -76,46 +84,46 @@ void MapperManager::checkAddDevice(mpr_dev device) {
     sigs = mpr_list_get_next(sigs);
   }
 
+  juce::ScopedLock lock(mListenerLock);
   for (DevicesListener* listener : mDevicesListeners) {
-    listener->deviceAdded(devices.back());
+    listener->deviceAdded(newDev);
   }
 }
 
 void MapperManager::removeDevice(mpr_dev dev) {
   auto deviceIter =
-      std::find_if(devices.begin(), devices.end(), [dev](Device other) { return other.dev == dev; });
+      std::find_if(devices.begin(), devices.end(), [dev](Device* other) { return other->dev == dev; });
   if (deviceIter == devices.end()) return;  // Skip if device not found
+  
   // Must call listeners before destroying reference to device
+  juce::ScopedLock lock(mListenerLock);
   for (DevicesListener* listener : mDevicesListeners) {
     listener->deviceRemoved(*deviceIter);
   }
 
   DBG("rem dev: " + juce::String(mpr_obj_get_prop_as_str(dev, MPR_PROP_NAME, nullptr)));
 
-
-  devices.erase(
-      std::remove_if(devices.begin(), devices.end(), [dev](Device other) { return other.dev == dev; }),
-      devices.end());
+  devices.removeObject(*deviceIter);
 }
 
-MapperManager::Signal& MapperManager::checkAddSignal(mpr_sig sig) {
-  Device& device = getDevice(sig);
+MapperManager::Signal* MapperManager::checkAddSignal(mpr_sig sig) {
+  Device* device = getDevice(sig);
 
   bool isSource = mpr_obj_get_prop_as_int32(sig, MPR_PROP_DIR, nullptr) == MPR_DIR_OUT;
-  std::vector<Signal>& signals = isSource ? device.sourceSignals : device.destSignals;
+  juce::OwnedArray<Signal>& signals = isSource ? device->sourceSignals : device->destSignals;
   // Skip if already added
-  auto iter = std::find_if(signals.begin(), signals.end(), [sig](Signal other) { return other.sig == sig; });
+  auto iter = std::find_if(signals.begin(), signals.end(), [sig](Signal* other) { return other->sig == sig; });
   if (iter != signals.end()) return *iter;
   // Add signal to its list
-  juce::Colour baseColour = juce::Colour(BASE_COLOUR);
-  Signal newSig = Signal(sig, baseColour.withHue(baseColour.getHue() + ((float)devices.size() / MAX_IDX)));
-  signals.push_back(newSig);
+  Signal* newSig = new Signal(sig);
+  signals.add(newSig);
   DBG("add sig: " + juce::String(mpr_obj_get_prop_as_str(sig, MPR_PROP_NAME, nullptr)));
 
   // Call signal listeners if device matches
+  juce::ScopedLock lock(mListenerLock);
   for (SignalsListener* listener : mSignalsListeners) {
-    if (listener->device.dev == device.dev) {
-      listener->signalAdded(signals.back());
+    if (listener->device->dev == device->dev) {
+      listener->signalAdded(newSig);
     }
   }
   // Call devices listener for new signal
@@ -127,25 +135,24 @@ MapperManager::Signal& MapperManager::checkAddSignal(mpr_sig sig) {
 }
 
 void MapperManager::removeSignal(mpr_sig sig) {
-  Device& device = getDevice(sig);
+  Device* device = getDevice(sig);
   bool isSource = mpr_obj_get_prop_as_int32(sig, MPR_PROP_DIR, nullptr) == MPR_DIR_OUT;
-  std::vector<Signal>& signals = isSource ? device.sourceSignals : device.destSignals;
+  juce::OwnedArray<Signal>& signals = isSource ? device->sourceSignals : device->destSignals;
   
-  auto iter = std::find_if(signals.begin(), signals.end(), [sig](Signal other) { return other.sig == sig; });
+  auto iter = std::find_if(signals.begin(), signals.end(), [sig](Signal* other) { return other->sig == sig; });
   if (iter == signals.end()) return; // Skip if not found
+
   // Call signal listeners if device matches before erasing signal
+  juce::ScopedLock lock(mListenerLock);
   for (SignalsListener* listener : mSignalsListeners) {
-    if (listener->device.dev == device.dev) {
+    if (listener->device->dev == device->dev) {
       listener->signalRemoved(*iter);
     }
   }
 
   DBG("rem sig: " + juce::String(mpr_obj_get_prop_as_str(sig, MPR_PROP_NAME, nullptr)));
 
-
-  signals.erase(
-      std::remove_if(signals.begin(), signals.end(), [sig](Signal other) { return other.sig == sig; }),
-      signals.end());
+  signals.removeObject(*iter);
 
   // Call devices listener for removed signal
   for (DevicesListener* listener : mDevicesListeners) {
@@ -153,31 +160,36 @@ void MapperManager::removeSignal(mpr_sig sig) {
   }
 }
 
-MapperManager::Map& MapperManager::checkAddMap(mpr_map map) {
+MapperManager::Map* MapperManager::checkAddMap(mpr_map map) {
   mpr_sig sourceSig = *mpr_map_get_sigs(map, MPR_LOC_SRC);
   mpr_sig destSig = *mpr_map_get_sigs(map, MPR_LOC_DST);
   jassert(sourceSig && destSig);
-  Signal& sourceSignal = checkAddSignal(sourceSig);
-  Signal& destSignal = checkAddSignal(destSig);
+  Signal* sourceSignal = checkAddSignal(sourceSig);
+  Signal* destSignal = checkAddSignal(destSig);
+  
   // Skip if already added
-  auto mapIter = std::find_if(maps.begin(), maps.end(), [map](Map other) { return other.map == map; });
+  auto mapIter = std::find_if(maps.begin(), maps.end(), [map](Map* other) { return other->map == map; });
   if (mapIter != maps.end()) {
     return *mapIter;
   }
-    
-  Map newMap = Map(map, &sourceSignal, &destSignal);
-  maps.push_back(newMap);
+  
+  jassert(sourceSignal != nullptr && destSignal != nullptr);
+  Map* newMap = new Map(map, sourceSignal, destSignal);
+  maps.add(newMap);
   return newMap;
 }
 
 void MapperManager::removeMap(mpr_map map) {
-  std::remove_if(maps.begin(), maps.end(), [map](Map other) { return other.map == map; });
+  auto iter = std::find_if(maps.begin(), maps.end(), [map](Map* other) { return other->map == map; });
+  if (iter != maps.end()) {
+    maps.removeObject(*iter);
+  }
 }
 
-MapperManager::Device& MapperManager::getDevice(mpr_sig sig) {
+MapperManager::Device* MapperManager::getDevice(mpr_sig sig) {
   mpr_dev dev = mpr_sig_get_dev(sig);
   auto devIter =
-      std::find_if(devices.begin(), devices.end(), [dev](Device other) { return other.dev == dev; });
+      std::find_if(devices.begin(), devices.end(), [dev](Device* other) { return other->dev == dev; });
   jassert(devIter != devices.end());
   return *devIter;
 }

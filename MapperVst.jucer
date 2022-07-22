@@ -17,6 +17,7 @@
             file="Source/Resources/listViewIcon.png"/>
     </GROUP>
     <GROUP id="{C22748AE-EC27-E495-8797-6B540AC21C18}" name="Source">
+      <FILE id="VUvIMT" name="Utilities.h" compile="0" resource="0" file="Source/Utilities.h"/>
       <GROUP id="{17899BD0-47B0-70E9-741D-F6BF873F247F}" name="Components">
         <GROUP id="{B741FF4C-D27B-6FFB-8F13-C88527AA235C}" name="Menus">
           <FILE id="kRNoFZ" name="FileOpenSaveComponent.cpp" compile="1" resource="0"

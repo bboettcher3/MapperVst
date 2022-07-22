@@ -19,7 +19,7 @@
  */
 class ListDeviceComponent : public juce::Component, MapperManager::SignalsListener {
  public:
-  ListDeviceComponent(MapperManager& manager, MapperManager::Device& device, mpr_dir dir);
+  ListDeviceComponent(MapperManager& manager, MapperManager::Device* device, mpr_dir dir);
   ~ListDeviceComponent() override;
 
   void paint(juce::Graphics&) override;
@@ -28,18 +28,21 @@ class ListDeviceComponent : public juce::Component, MapperManager::SignalsListen
   void mouseMove(const juce::MouseEvent& e) override;
   void mouseExit(const juce::MouseEvent& e) override;
 
-  void signalAdded(MapperManager::Signal& signal) override;
-  void signalRemoved(MapperManager::Signal& signal) override;
+  void signalAdded(MapperManager::Signal* signal) override;
+  void signalRemoved(MapperManager::Signal* signal) override;
 
-  MapperManager::Device& getDevice() { return mDevice; }
+  MapperManager::Device* getDevice() { return mDevice; }
   juce::OwnedArray<ListSignalComponent>& getSignals() { return mSignals; }
 
   static constexpr int SIGNAL_HEIGHT = 30;
 
  private:
+  static constexpr float SIG_ODD_ALPHA = 0.7f;
+  static constexpr float SIG_EVEN_ALPHA = 0.4f;
+
   // Bookkeeping
   MapperManager& mMapperManager;
-  MapperManager::Device& mDevice;
+  MapperManager::Device* mDevice;
   juce::String mDevName;
   mpr_dir mDir;
   bool mIsExpanded = true;

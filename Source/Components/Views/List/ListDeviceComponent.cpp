@@ -13,15 +13,18 @@
 #include "BinaryData.h"
 
 //==============================================================================
-ListDeviceComponent::ListDeviceComponent(MapperManager& manager, MapperManager::Device& device, mpr_dir dir)
+ListDeviceComponent::ListDeviceComponent(MapperManager& manager, MapperManager::Device* device,
+                                         mpr_dir dir)
     : mMapperManager(manager), mDevice(device), mDir(dir), MapperManager::SignalsListener(device) {
-  mDevName = juce::String(mpr_obj_get_prop_as_str(mDevice.dev, MPR_PROP_NAME, nullptr));
+  mDevName = juce::String(mpr_obj_get_prop_as_str(mDevice->dev, MPR_PROP_NAME, nullptr));
 
   // Populate signal components
-  std::vector<MapperManager::Signal>& signals =
-      (mDir == MPR_DIR_OUT) ? device.sourceSignals : device.destSignals;
-  for (MapperManager::Signal& signal : signals) {
-    auto newSignal = new ListSignalComponent(signal);
+  juce::OwnedArray<MapperManager::Signal>& signals =
+      (mDir == MPR_DIR_OUT) ? device->sourceSignals : device->destSignals;
+  for (MapperManager::Signal* signal : signals) {
+    juce::Colour sigColour =
+        mDevice->colour.withAlpha((mSignals.size() % 2) ? SIG_EVEN_ALPHA : SIG_ODD_ALPHA);
+    auto newSignal = new ListSignalComponent(signal, sigColour);
     mSignals.add(newSignal);
     addAndMakeVisible(newSignal);
   }
@@ -53,7 +56,6 @@ ListDeviceComponent::ListDeviceComponent(MapperManager& manager, MapperManager::
                      juce::Colours::lightgrey, infoIcon, 1.0f, juce::Colours::white);
   mBtnInfo.onClick = [this] { /* TODO print device */ };
   addChildComponent(mBtnInfo);
-  
 
   mMapperManager.addListener(this);
 
@@ -69,20 +71,20 @@ void ListDeviceComponent::paint(juce::Graphics& g) {
       (mDir == MPR_DIR_OUT)
           ? juce::Rectangle<int>(0, 0, getWidth() / 2.0f, SIGNAL_HEIGHT)
           : juce::Rectangle<int>(getWidth() / 2.0f, 0, getWidth() / 2.0f, SIGNAL_HEIGHT);
-  
-  g.setColour(mDevice.colour);
+
+  g.setColour(mDevice->colour);
   g.fillRect(devPanel);
 
   // Device name and info
   g.setColour(juce::Colours::black);
   g.drawText(mDevName, devPanel, juce::Justification::centred);
 
-  std::vector<MapperManager::Signal>& signals =
-      (mDir == MPR_DIR_OUT) ? mDevice.sourceSignals : mDevice.destSignals;
+  juce::OwnedArray<MapperManager::Signal>& signals =
+      (mDir == MPR_DIR_OUT) ? mDevice->sourceSignals : mDevice->destSignals;
   if (!mIsExpanded) {
     auto collapsedArea = (mDir == MPR_DIR_OUT) ? devPanel.translated(getWidth() / 2.0f, 0)
                                                : devPanel.translated(-getWidth() / 2.0f, 0);
-    g.setColour(mDevice.colour);
+    g.setColour(mDevice->colour);
     g.fillRect(collapsedArea);
 
     juce::String collapsedMessage = juce::String((int)signals.size()) + juce::String(" signals");
@@ -99,7 +101,8 @@ void ListDeviceComponent::resized() {
   // Expand/collapse arrow
   auto collapseIconRect = (mDir == MPR_DIR_OUT) ? devPanel.removeFromLeft(SIGNAL_HEIGHT)
                                                 : devPanel.removeFromRight(SIGNAL_HEIGHT);
-  mBtnCollapse.setBounds(collapseIconRect.withSizeKeepingCentre(SIGNAL_HEIGHT / 2, SIGNAL_HEIGHT / 2));
+  mBtnCollapse.setBounds(
+      collapseIconRect.withSizeKeepingCentre(SIGNAL_HEIGHT / 2, SIGNAL_HEIGHT / 2));
 
   // Info button
   auto infoIconRect = (mDir == MPR_DIR_OUT) ? devPanel.removeFromRight(SIGNAL_HEIGHT)
@@ -134,21 +137,31 @@ void ListDeviceComponent::mouseExit(const juce::MouseEvent& e) {
   }
 }
 
-void ListDeviceComponent::signalAdded(MapperManager::Signal& signal) {
-  auto iter = std::find_if(mSignals.begin(), mSignals.end(),
-      [signal](ListSignalComponent* other) { return other->getSignal().sig == signal.sig; });
+void ListDeviceComponent::signalAdded(MapperManager::Signal* signal) {
+  auto iter = std::find_if(mSignals.begin(), mSignals.end(), [signal](ListSignalComponent* other) {
+    return other->getSignal()->sig == signal->sig;
+  });
   if (iter == mSignals.end()) {
-    auto newSignal = new ListSignalComponent(signal);
+    juce::Colour sigColour =
+        mDevice->colour.withAlpha((mSignals.size() % 2) ? SIG_EVEN_ALPHA : SIG_ODD_ALPHA);
+    auto newSignal = new ListSignalComponent(signal, sigColour);
     mSignals.add(newSignal);
     addAndMakeVisible(newSignal);
     updateSize();
   }
 }
-void ListDeviceComponent::signalRemoved(MapperManager::Signal& signal) {
+void ListDeviceComponent::signalRemoved(MapperManager::Signal* signal) {
   for (ListSignalComponent* signalComp : mSignals) {
-    if (signalComp->getSignal().sig == signal.sig) {
+    if (signalComp->getSignal()->sig == signal->sig) {
       mSignals.removeObject(signalComp);
+      // Update signal colours
+      for (int i = 0; i < mSignals.size(); ++i) {
+        juce::Colour sigColour =
+            mDevice->colour.withAlpha((i % 2) ? SIG_EVEN_ALPHA : SIG_ODD_ALPHA);
+        mSignals[i]->setColour(sigColour);
+      }
       updateSize();
+      break;
     }
   }
 }

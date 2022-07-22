@@ -14,15 +14,15 @@
 //==============================================================================
 ListViewComponent::ListViewComponent(MapperManager& manager) : mMapperManager(manager) {
   // Populate device components
-  for (MapperManager::Device& device : manager.devices) {
+  for (MapperManager::Device* device : manager.devices) {
     // First sources
-    if (device.sourceSignals.size() > 0) {
+    if (device->sourceSignals.size() > 0) {
       auto newDevice = new ListDeviceComponent(mMapperManager, device, MPR_DIR_OUT);
       mSourceDevices.add(newDevice);
       addAndMakeVisible(newDevice);
     }
     // Then destinations
-    if (device.destSignals.size() > 0) {
+    if (device->destSignals.size() > 0) {
       auto newDevice = new ListDeviceComponent(mMapperManager, device, MPR_DIR_IN);
       mDestDevices.add(newDevice);
       addAndMakeVisible(newDevice);
@@ -56,7 +56,7 @@ void ListViewComponent::paintOverChildren(juce::Graphics& g) {
   // Draw dragging arrow
   if (mDragSource != nullptr) {
     int sourceY = getLocalPoint(mDragSource, mDragSource->getLocalBounds().getTopLeft()).getY() +
-            ListDeviceComponent::SIGNAL_HEIGHT / 2.0f;
+                  ListDeviceComponent::SIGNAL_HEIGHT / 2.0f;
     juce::Point<int> dragStart = juce::Point<int>(mDevWidth, sourceY);
     g.setColour(juce::Colours::white);
     g.drawArrow(juce::Line<int>(dragStart, mDragPoint).toFloat(), 4, 10, 10);
@@ -119,18 +119,18 @@ void ListViewComponent::mouseDrag(const juce::MouseEvent& e) {
     }
   }
 
-  repaint(); 
+  repaint();
 }
 
 void ListViewComponent::mouseUp(const juce::MouseEvent& e) {
   if (mDragSource != nullptr && mDragDest != nullptr) {
     // Add new mapping
-    mpr_map newMap = mpr_map_new(1, &mDragSource->getSignal().sig, 1, &mDragDest->getSignal().sig);
+    mpr_map newMap =
+        mpr_map_new(1, &mDragSource->getSignal()->sig, 1, &mDragDest->getSignal()->sig);
     mpr_obj_push(newMap);
-    MapperManager::Map& map = mMapperManager.checkAddMap(newMap);
-    auto iter = std::find_if(
-        mListMaps.begin(), mListMaps.end(),
-        [map](ListMap other) { return other.map.map == map.map; });
+    MapperManager::Map* map = mMapperManager.checkAddMap(newMap);
+    auto iter = std::find_if(mListMaps.begin(), mListMaps.end(),
+                             [map](ListMap other) { return other.map->map == map->map; });
     if (iter == mListMaps.end()) {
       mListMaps.push_back(ListMap(map, mDragSource, mDragDest));
     }
@@ -141,15 +141,15 @@ void ListViewComponent::mouseUp(const juce::MouseEvent& e) {
   repaint();
 }
 
-void ListViewComponent::deviceAdded(MapperManager::Device& device) {
+void ListViewComponent::deviceAdded(MapperManager::Device* device) {
   // First sources
-  if (device.sourceSignals.size() > 0) {
+  if (device->sourceSignals.size() > 0) {
     auto newDevice = new ListDeviceComponent(mMapperManager, device, MPR_DIR_OUT);
     mSourceDevices.add(newDevice);
     addAndMakeVisible(newDevice);
   }
   // Then destinations
-  if (device.destSignals.size() > 0) {
+  if (device->destSignals.size() > 0) {
     auto newDevice = new ListDeviceComponent(mMapperManager, device, MPR_DIR_IN);
     mDestDevices.add(newDevice);
     addAndMakeVisible(newDevice);
@@ -158,19 +158,19 @@ void ListViewComponent::deviceAdded(MapperManager::Device& device) {
   repaint();
 }
 
-void ListViewComponent::deviceModified(MapperManager::Device& device) {
+void ListViewComponent::deviceModified(MapperManager::Device* device) {
   // Create or remove component depending on signals present
   // First sources
   auto iter = std::find_if(
       mSourceDevices.begin(), mSourceDevices.end(),
-      [device](ListDeviceComponent* other) { return other->getDevice().dev == device.dev; });
+      [device](ListDeviceComponent* other) { return other->getDevice()->dev == device->dev; });
 
-  if (iter == mSourceDevices.end() && device.sourceSignals.size() > 0) {
+  if (iter == mSourceDevices.end() && device->sourceSignals.size() > 0) {
     // Add new source device
     auto newDevice = new ListDeviceComponent(mMapperManager, device, MPR_DIR_OUT);
     mSourceDevices.add(newDevice);
     addAndMakeVisible(newDevice);
-  } else if (iter != mSourceDevices.end() && device.sourceSignals.size() == 0) {
+  } else if (iter != mSourceDevices.end() && device->sourceSignals.size() == 0) {
     // Remove empty source device
     mSourceDevices.removeObject(*iter);
   }
@@ -178,13 +178,13 @@ void ListViewComponent::deviceModified(MapperManager::Device& device) {
   // Then destinations
   iter = std::find_if(
       mDestDevices.begin(), mDestDevices.end(),
-      [device](ListDeviceComponent* other) { return other->getDevice().dev == device.dev; });
-  if (iter == mDestDevices.end() && device.destSignals.size() > 0) {
+      [device](ListDeviceComponent* other) { return other->getDevice()->dev == device->dev; });
+  if (iter == mDestDevices.end() && device->destSignals.size() > 0) {
     // Add new dest device
     auto newDevice = new ListDeviceComponent(mMapperManager, device, MPR_DIR_IN);
     mDestDevices.add(newDevice);
     addAndMakeVisible(newDevice);
-  } else if (iter != mDestDevices.end() && device.destSignals.size() == 0) {
+  } else if (iter != mDestDevices.end() && device->destSignals.size() == 0) {
     // Remove empty dest device
     mDestDevices.removeObject(*iter);
   }
@@ -192,19 +192,19 @@ void ListViewComponent::deviceModified(MapperManager::Device& device) {
   repaint();
 }
 
-void ListViewComponent::deviceRemoved(MapperManager::Device& device) {
+void ListViewComponent::deviceRemoved(MapperManager::Device* device) {
   // First sources
-  if (device.sourceSignals.size() > 0) {
+  if (device->sourceSignals.size() > 0) {
     for (ListDeviceComponent* deviceComp : mSourceDevices) {
-      if (deviceComp->getDevice().dev == device.dev) {
+      if (deviceComp->getDevice()->dev == device->dev) {
         mSourceDevices.removeObject(deviceComp);
       }
     }
   }
   // Then destinations
-  if (device.destSignals.size() > 0) {
+  if (device->destSignals.size() > 0) {
     for (ListDeviceComponent* deviceComp : mDestDevices) {
-      if (deviceComp->getDevice().dev == device.dev) {
+      if (deviceComp->getDevice()->dev == device->dev) {
         mDestDevices.removeObject(deviceComp);
       }
     }
