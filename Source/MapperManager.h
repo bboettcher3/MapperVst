@@ -91,7 +91,7 @@ class MapperManager {
   juce::CriticalSection mListenerLock;
   juce::Array<DevicesListener*> mDevicesListeners;
   juce::Array<SignalsListener*> mSignalsListeners;
-  int mCurDeviceColourIdx = 0;
+  int mCurDeviceColourIdx = 1;
 
   Device* getDevice(mpr_sig sig);
   static void deviceCallbackHandler(mpr_graph g, mpr_dev dev, mpr_graph_evt e, const void* context);

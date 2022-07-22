@@ -28,6 +28,7 @@ class ListViewComponent : public juce::Component, MapperManager::DevicesListener
 
   void mouseDrag(const juce::MouseEvent& e) override;
   void mouseUp(const juce::MouseEvent& e) override;
+  void mouseMove(const juce::MouseEvent& e) override;
 
   void deviceAdded(MapperManager::Device* device) override;
   void deviceModified(MapperManager::Device* device) override;

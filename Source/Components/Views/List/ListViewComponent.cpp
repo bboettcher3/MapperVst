@@ -109,15 +109,20 @@ void ListViewComponent::mouseDrag(const juce::MouseEvent& e) {
       }
     }
   } else {
-    mDragPoint = e.getEventRelativeTo(this).getPosition();
+    mDragDest = nullptr; // Reset every frame in case mouse dragged outside
+    auto thisE = e.getEventRelativeTo(this);
+    mDragPoint = thisE.getPosition();
     for (ListDeviceComponent* devComp : mDestDevices) {
       for (ListSignalComponent* sigComp : devComp->getSignals()) {
-        if (e.eventComponent == sigComp) {
+        bool isInside = sigComp->contains(sigComp->getLocalPoint(this, thisE.getPosition()));
+        if (isInside) {
           mDragDest = sigComp;
         }
       }
     }
   }
+
+  mouseMove(e.getEventRelativeTo(this));
 
   repaint();
 }
@@ -139,6 +144,23 @@ void ListViewComponent::mouseUp(const juce::MouseEvent& e) {
   mDragSource = nullptr;
   mDragDest = nullptr;
   repaint();
+}
+
+void ListViewComponent::mouseMove(const juce::MouseEvent& e) {
+  // TODO: a bit messy being called from mouseDrag(), can maybe clean up
+  auto thisE = e.getEventRelativeTo(this);
+  for (ListDeviceComponent* devComp : mSourceDevices) {
+    for (ListSignalComponent* sigComp : devComp->getSignals()) {
+      bool isInside = sigComp->contains(sigComp->getLocalPoint(this, thisE.getPosition()));
+      sigComp->setIsHovering(isInside || mDragSource == sigComp);
+    }
+  }
+  for (ListDeviceComponent* devComp : mDestDevices) {
+    for (ListSignalComponent* sigComp : devComp->getSignals()) {
+      bool isInside = sigComp->contains(sigComp->getLocalPoint(this, thisE.getPosition()));
+      sigComp->setIsHovering(isInside || mDragDest == sigComp);
+    }
+  }
 }
 
 void ListViewComponent::deviceAdded(MapperManager::Device* device) {

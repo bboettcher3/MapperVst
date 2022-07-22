@@ -22,17 +22,14 @@ ListSignalComponent::ListSignalComponent(MapperManager::Signal* signal, juce::Co
 ListSignalComponent::~ListSignalComponent() {}
 
 void ListSignalComponent::paint(juce::Graphics& g) {
-  
-
-  g.fillAll(mColour);  // clear the background
+  g.fillAll(mIsHovering ? mColour.brighter() : mColour);  // clear the background
 
   g.setColour(juce::Colours::grey);
   g.drawRect(getLocalBounds(), 1);  // draw an outline around the component
 
   g.setColour(juce::Colours::black);
   g.setFont(14.0f);
-  g.drawText(mSigName, getLocalBounds(), juce::Justification::centred,
-             true);  // draw some placeholder text
+  g.drawText(mSigName, getLocalBounds(), juce::Justification::centred, true);
 }
 
 void ListSignalComponent::resized() {
