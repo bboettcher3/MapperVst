@@ -153,16 +153,21 @@ void MapperManager::removeSignal(mpr_sig sig) {
   }
 }
 
-void MapperManager::checkAddMap(mpr_map map) {
+MapperManager::Map& MapperManager::checkAddMap(mpr_map map) {
   mpr_sig sourceSig = *mpr_map_get_sigs(map, MPR_LOC_SRC);
   mpr_sig destSig = *mpr_map_get_sigs(map, MPR_LOC_DST);
   jassert(sourceSig && destSig);
   Signal& sourceSignal = checkAddSignal(sourceSig);
   Signal& destSignal = checkAddSignal(destSig);
   // Skip if already added
-  if (std::find_if(maps.begin(), maps.end(), [map](Map other) { return other.map == map; }) != maps.end())
-    return;
-  maps.push_back(Map(map, &sourceSignal, &destSignal));
+  auto mapIter = std::find_if(maps.begin(), maps.end(), [map](Map other) { return other.map == map; });
+  if (mapIter != maps.end()) {
+    return *mapIter;
+  }
+    
+  Map newMap = Map(map, &sourceSignal, &destSignal);
+  maps.push_back(newMap);
+  return newMap;
 }
 
 void MapperManager::removeMap(mpr_map map) {

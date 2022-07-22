@@ -40,20 +40,24 @@ ListDeviceComponent::ListDeviceComponent(MapperManager& manager, MapperManager::
   mBtnCollapse.setImages(false, true, true, arrowCollapsed, 1.0f, juce::Colours::black,
                          juce::Image(), 1.0f, juce::Colours::lightgrey, arrowExpanded, 1.0f,
                          juce::Colours::black);
+  mBtnCollapse.onClick = [this] {
+    mIsExpanded = !mIsExpanded;
+    updateSize();
+  };
   addAndMakeVisible(mBtnCollapse);
 
   // Info button
   juce::Image infoIcon =
       juce::PNGImageFormat::loadFrom(BinaryData::infoIcon_png, BinaryData::infoIcon_pngSize);
-  mBtnInfo.setToggleable(true);
-  mBtnInfo.setToggleState(mIsExpanded, juce::dontSendNotification);
-  mBtnInfo.setClickingTogglesState(true);
-  mBtnInfo.setImages(false, true, true, infoIcon, 1.0f, juce::Colours::white, infoIcon, 1.0f,
-                     juce::Colours::lightgrey, infoIcon, 1.0f, juce::Colours::black);
-  addAndMakeVisible(mBtnInfo);
-  mBtnInfo.setVisible(false);
+  mBtnInfo.setImages(false, true, true, infoIcon, 1.0f, juce::Colours::black, infoIcon, 1.0f,
+                     juce::Colours::lightgrey, infoIcon, 1.0f, juce::Colours::white);
+  mBtnInfo.onClick = [this] { /* TODO print device */ };
+  addChildComponent(mBtnInfo);
+  
 
   mMapperManager.addListener(this);
+
+  addMouseListener(this, true);
 
   updateSize();
 }
@@ -65,8 +69,6 @@ void ListDeviceComponent::paint(juce::Graphics& g) {
       (mDir == MPR_DIR_OUT)
           ? juce::Rectangle<int>(0, 0, getWidth() / 2.0f, SIGNAL_HEIGHT)
           : juce::Rectangle<int>(getWidth() / 2.0f, 0, getWidth() / 2.0f, SIGNAL_HEIGHT);
-
-  mpr_dir dir = mDir;
   
   g.setColour(mDevice.colour);
   g.fillRect(devPanel);
@@ -77,12 +79,15 @@ void ListDeviceComponent::paint(juce::Graphics& g) {
 
   std::vector<MapperManager::Signal>& signals =
       (mDir == MPR_DIR_OUT) ? mDevice.sourceSignals : mDevice.destSignals;
-  if (mIsExpanded) {
-  } else {
-    /*juce::String collapsedMessage = juce::String(signals.size()) + juce::String(" signals");
-    g.setColour(juce::Colours::white);
-    g.drawText(collapsedMessage, getLocalBounds().removeFromLeft(getWidth() * DEV_NAME_WIDTH_PERC),
-               juce::Justification::centred);*/
+  if (!mIsExpanded) {
+    auto collapsedArea = (mDir == MPR_DIR_OUT) ? devPanel.translated(getWidth() / 2.0f, 0)
+                                               : devPanel.translated(-getWidth() / 2.0f, 0);
+    g.setColour(mDevice.colour);
+    g.fillRect(collapsedArea);
+
+    juce::String collapsedMessage = juce::String((int)signals.size()) + juce::String(" signals");
+    g.setColour(juce::Colours::black);
+    g.drawText(collapsedMessage, collapsedArea, juce::Justification::centred);
   }
 }
 
@@ -103,9 +108,15 @@ void ListDeviceComponent::resized() {
 
   auto sigArea = (mDir == MPR_DIR_OUT) ? getLocalBounds().removeFromRight(getWidth() / 2.0f)
                                        : getLocalBounds().removeFromLeft(getWidth() / 2.0f);
-
-  for (ListSignalComponent* signal : mSignals) {
-    signal->setBounds(sigArea.removeFromTop(SIGNAL_HEIGHT));
+  if (mIsExpanded) {
+    for (ListSignalComponent* signal : mSignals) {
+      signal->setVisible(true);
+      signal->setBounds(sigArea.removeFromTop(SIGNAL_HEIGHT));
+    }
+  } else {
+    for (ListSignalComponent* signal : mSignals) {
+      signal->setVisible(false);
+    }
   }
 }
 
@@ -145,7 +156,6 @@ void ListDeviceComponent::signalRemoved(MapperManager::Signal& signal) {
 void ListDeviceComponent::updateSize() {
   float height =
       mIsExpanded ? juce::jmax(SIGNAL_HEIGHT, (int)mSignals.size() * SIGNAL_HEIGHT) : SIGNAL_HEIGHT;
-  DBG(juce::String(mSignals.size()));
   setSize(100, height);
   juce::Component* parent = getParentComponent();
   if (parent != nullptr) {

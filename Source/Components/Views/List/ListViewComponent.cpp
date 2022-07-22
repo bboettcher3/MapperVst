@@ -30,6 +30,7 @@ ListViewComponent::ListViewComponent(MapperManager& manager) : mMapperManager(ma
   }
 
   manager.addListener(this);
+  addMouseListener(this, true);
 }
 
 ListViewComponent::~ListViewComponent() { mMapperManager.removeListener(this); }
@@ -49,74 +50,95 @@ void ListViewComponent::paint(juce::Graphics& g) {
     g.setColour(juce::Colours::white);
     g.drawText("No devices found", r.toFloat(), juce::Justification::centred);
   }
+}
 
-  /*
+void ListViewComponent::paintOverChildren(juce::Graphics& g) {
   // Draw dragging arrow
-  if (mDragSource.sig != nullptr) {
-    juce::Point<int> dragStart =
-        juce::Point<int>(mDevNameWidth + mSigWidth, mDragSource.yPos).translated(0, SIG_HEIGHT / 2.0f);
+  if (mDragSource != nullptr) {
+    int sourceY = getLocalPoint(mDragSource, mDragSource->getLocalBounds().getTopLeft()).getY() +
+            ListDeviceComponent::SIGNAL_HEIGHT / 2.0f;
+    juce::Point<int> dragStart = juce::Point<int>(mDevWidth, sourceY);
     g.setColour(juce::Colours::white);
     g.drawArrow(juce::Line<int>(dragStart, mDragPoint).toFloat(), 4, 10, 10);
   }
 
   // Draw mappings
-  for (int i = 0; i < mMapperManager.maps.size(); ++i) {
-    juce::Point<int> connStart = juce::Point<int>(mDevNameWidth + mSigWidth,
-  mMapperManager.maps[i].signals.first.yPos) .translated(0, SIG_HEIGHT / 2.0f); juce::Point<int> connEnd =
-  juce::Point<int>(getWidth() / 2.0f + MAPPING_GAP, mMapperManager.maps[i].signals.second.yPos) .translated(0,
-  SIG_HEIGHT / 2.0f); g.setColour(juce::Colours::white); g.drawArrow(juce::Line<int>(connStart,
-  connEnd).toFloat(), 4, 10, 10);
-  }*/
+  for (ListMap& listMap : mListMaps) {
+    int sourceY = getLocalPoint(listMap.sourceSignal, listMap.sourceSignal->getPosition()).getY() +
+                  ListDeviceComponent::SIGNAL_HEIGHT / 2.0f;
+    juce::Point<int> dragStart = juce::Point<int>(mDevWidth, sourceY);
+    int destY = getLocalPoint(listMap.destSignal, listMap.destSignal->getPosition()).getY() +
+                ListDeviceComponent::SIGNAL_HEIGHT / 2.0f;
+    juce::Point<int> connStart = juce::Point<int>(mDevWidth, destY);
+    juce::Point<int> connEnd = juce::Point<int>(getWidth() - mDevWidth, destY);
+    g.setColour(juce::Colours::white);
+    g.drawArrow(juce::Line<int>(connStart, connEnd).toFloat(), 4, 10, 10);
+  }
 }
 
 void ListViewComponent::resized() {
-  int devWidth = (getWidth() - 2 * MAPPING_GAP) / 2.0f;
+  mDevWidth = (getWidth() - 2 * MAPPING_GAP) / 2.0f;
   // Source devices
   float curY = DIR_LABEL_HEIGHT;
   for (ListDeviceComponent* device : mSourceDevices) {
-    device->setBounds(0, curY, devWidth, device->getHeight());
-    DBG("src sigs: " + juce::String(device->getDevice().sourceSignals.size()) +
-        "h: " + juce::String(device->getHeight()));
+    device->setBounds(0, curY, mDevWidth, device->getHeight());
     curY += device->getHeight();
   }
   // Destination devices
   curY = DIR_LABEL_HEIGHT;
   for (ListDeviceComponent* device : mDestDevices) {
-    device->setSize(devWidth, device->getHeight());
+    device->setSize(mDevWidth, device->getHeight());
     device->setTopRightPosition(getWidth(), curY);
-    DBG("dst sigs: " + juce::String(device->getDevice().destSignals.size()) +
-        ", h: " + juce::String(device->getHeight()));
     curY += device->getHeight();
   }
 }
 
 void ListViewComponent::mouseDrag(const juce::MouseEvent& e) {
   // Signal mapping drag
-  /* mDragDest = MapperManager::Signal();
-  if (mDragSource.sig != nullptr) {
-    mDragPoint = e.getPosition();
-    for (MapperManager::Signal& sig : mDestSigs) {
-      if (juce::Rectangle<int>((getWidth() / 2.0f) + MAPPING_GAP, sig.yPos, mSigWidth, SIG_HEIGHT)
-              .contains(e.getPosition())) {
-        mDragDest = sig;
+
+  // Check for destinations if we have a source
+  if (mDragSource == nullptr) {
+    mDragDest = nullptr;
+    // Check for a source
+    for (ListDeviceComponent* devComp : mSourceDevices) {
+      for (ListSignalComponent* sigComp : devComp->getSignals()) {
+        if (e.eventComponent == sigComp) {
+          mDragSource = sigComp;
+          mDragPoint = e.getEventRelativeTo(this).getPosition();
+        }
       }
     }
-    repaint();
-  } */
+  } else {
+    mDragPoint = e.getEventRelativeTo(this).getPosition();
+    for (ListDeviceComponent* devComp : mDestDevices) {
+      for (ListSignalComponent* sigComp : devComp->getSignals()) {
+        if (e.eventComponent == sigComp) {
+          mDragDest = sigComp;
+        }
+      }
+    }
+  }
+
+  repaint(); 
 }
 
 void ListViewComponent::mouseUp(const juce::MouseEvent& e) {
-  /*
-  if (mDragSource.sig != nullptr && mDragDest.sig != nullptr) {
+  if (mDragSource != nullptr && mDragDest != nullptr) {
     // Add new mapping
-    mpr_map newMap = mpr_map_new(1, &mDragSource.sig, 1, &mDragDest.sig);
+    mpr_map newMap = mpr_map_new(1, &mDragSource->getSignal().sig, 1, &mDragDest->getSignal().sig);
     mpr_obj_push(newMap);
-    mMapperManager.checkAddMap(newMap);
-    mDragSource = MapperManager::Signal();
-    mDragDest = MapperManager::Signal();
-    mDragPoint = juce::Point<int>();
+    MapperManager::Map& map = mMapperManager.checkAddMap(newMap);
+    auto iter = std::find_if(
+        mListMaps.begin(), mListMaps.end(),
+        [map](ListMap other) { return other.map.map == map.map; });
+    if (iter == mListMaps.end()) {
+      mListMaps.push_back(ListMap(map, mDragSource, mDragDest));
+    }
   }
-  repaint();*/
+  mDragPoint = juce::Point<int>();
+  mDragSource = nullptr;
+  mDragDest = nullptr;
+  repaint();
 }
 
 void ListViewComponent::deviceAdded(MapperManager::Device& device) {

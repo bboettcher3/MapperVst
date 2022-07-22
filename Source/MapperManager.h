@@ -75,7 +75,7 @@ class MapperManager {
   Signal& checkAddSignal(mpr_sig sig);
   void removeSignal(mpr_sig sig);
   // Conditionally adds mapping if not already added
-  void checkAddMap(mpr_map map);
+  Map& checkAddMap(mpr_map map);
   void removeMap(mpr_map map);
 
   mpr_graph graph;  // libmapper graph that keeps track of network (created by processor)

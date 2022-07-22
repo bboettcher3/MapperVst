@@ -32,13 +32,11 @@ class ListDeviceComponent : public juce::Component, MapperManager::SignalsListen
   void signalRemoved(MapperManager::Signal& signal) override;
 
   MapperManager::Device& getDevice() { return mDevice; }
+  juce::OwnedArray<ListSignalComponent>& getSignals() { return mSignals; }
 
- private:
   static constexpr int SIGNAL_HEIGHT = 30;
 
-
-
-
+ private:
   // Bookkeeping
   MapperManager& mMapperManager;
   MapperManager::Device& mDevice;
