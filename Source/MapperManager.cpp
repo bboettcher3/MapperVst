@@ -50,6 +50,10 @@ void MapperManager::addListener(SignalsListener* newListener) {
   const juce::ScopedLock sl(mListenerLock);
   mSignalsListeners.addIfNotAlreadyThere(newListener);
 }
+void MapperManager::addListener(MapsListener* newListener) {
+  const juce::ScopedLock sl(mListenerLock);
+  mMapsListeners.addIfNotAlreadyThere(newListener);
+}
 void MapperManager::removeListener(DevicesListener* listener) {
   const juce::ScopedLock sl(mListenerLock);
   mDevicesListeners.removeFirstMatchingValue(listener);
@@ -57,6 +61,10 @@ void MapperManager::removeListener(DevicesListener* listener) {
 void MapperManager::removeListener(SignalsListener* listener) {
   const juce::ScopedLock sl(mListenerLock);
   mSignalsListeners.removeFirstMatchingValue(listener);
+}
+void MapperManager::removeListener(MapsListener* listener) {
+  const juce::ScopedLock sl(mListenerLock);
+  mMapsListeners.removeFirstMatchingValue(listener);
 }
 
 void MapperManager::refreshGraph() {
@@ -176,12 +184,34 @@ MapperManager::Map* MapperManager::checkAddMap(mpr_map map) {
   jassert(sourceSignal != nullptr && destSignal != nullptr);
   Map* newMap = new Map(map, sourceSignal, destSignal);
   maps.add(newMap);
+
+  DBG("add map: " +
+      juce::String(mpr_obj_get_prop_as_str(newMap->signals.first->sig, MPR_PROP_NAME, nullptr)) +
+      juce::String(" -> ") +
+      juce::String(mpr_obj_get_prop_as_str(newMap->signals.second->sig, MPR_PROP_NAME, nullptr)));
+
+  // Call map added listeners
+  juce::ScopedLock lock(mListenerLock);
+  for (MapsListener* listener : mMapsListeners) {
+    listener->mapAdded(newMap);
+  }
+
   return newMap;
 }
 
 void MapperManager::removeMap(mpr_map map) {
   auto iter = std::find_if(maps.begin(), maps.end(), [map](Map* other) { return other->map == map; });
   if (iter != maps.end()) {
+    DBG("rem map: " +
+        juce::String(mpr_obj_get_prop_as_str((*iter)->signals.first->sig, MPR_PROP_NAME, nullptr)) +
+        juce::String(" -> ") +
+        juce::String(mpr_obj_get_prop_as_str((*iter)->signals.second->sig, MPR_PROP_NAME, nullptr)));
+
+    // Call map removed listeners
+    juce::ScopedLock lock(mListenerLock);
+    for (MapsListener* listener : mMapsListeners) {
+      listener->mapRemoved(*iter);
+    }
     maps.removeObject(*iter);
   }
 }

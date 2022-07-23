@@ -17,7 +17,7 @@
 //==============================================================================
 /*
  */
-class ListViewComponent : public juce::Component, MapperManager::DevicesListener {
+class ListViewComponent : public juce::Component, MapperManager::DevicesListener, MapperManager::MapsListener {
  public:
   ListViewComponent(MapperManager& manager);
   ~ListViewComponent() override;
@@ -33,6 +33,10 @@ class ListViewComponent : public juce::Component, MapperManager::DevicesListener
   void deviceAdded(MapperManager::Device* device) override;
   void deviceModified(MapperManager::Device* device) override;
   void deviceRemoved(MapperManager::Device* device) override;
+
+  void mapAdded(MapperManager::Map* map) override;
+  void mapModified(MapperManager::Map* map) override;
+  void mapRemoved(MapperManager::Map* map) override;
 
   MapperManager& getMapperManager() { return mMapperManager; }  // called from device callback
 

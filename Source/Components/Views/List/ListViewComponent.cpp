@@ -29,11 +29,43 @@ ListViewComponent::ListViewComponent(MapperManager& manager) : mMapperManager(ma
     }
   }
 
-  manager.addListener(this);
+  // Populate maps
+  for (MapperManager::Map* map : manager.maps) {
+    ListSignalComponent* sourceComp = nullptr;
+    ListSignalComponent* destComp = nullptr;
+    // Find source signal component
+    for (ListDeviceComponent* devComp : mSourceDevices) {
+      for (ListSignalComponent* sigComp : devComp->getSignals()) {
+        if (map->signals.first->sig == sigComp->getSignal()->sig) {
+          sourceComp = sigComp;
+          break;
+        }
+      }
+      if (sourceComp != nullptr) break;
+    }
+    // Find dest signal component
+    for (ListDeviceComponent* devComp : mDestDevices) {
+      for (ListSignalComponent* sigComp : devComp->getSignals()) {
+        if (map->signals.second->sig == sigComp->getSignal()->sig) {
+          destComp = sigComp;
+          break;
+        }
+      }
+      if (destComp != nullptr) break;
+    }
+    jassert(sourceComp != nullptr && destComp != nullptr);
+    mListMaps.push_back(ListMap(map, sourceComp, destComp));
+  }
+
+  manager.addListener((MapperManager::DevicesListener*)this);
+  manager.addListener((MapperManager::MapsListener*)this);
   addMouseListener(this, true);
 }
 
-ListViewComponent::~ListViewComponent() { mMapperManager.removeListener(this); }
+ListViewComponent::~ListViewComponent() {
+  mMapperManager.removeListener((MapperManager::DevicesListener*)this);
+  mMapperManager.removeListener((MapperManager::MapsListener*)this);
+}
 
 void ListViewComponent::paint(juce::Graphics& g) {
   auto r = getLocalBounds();
@@ -64,12 +96,12 @@ void ListViewComponent::paintOverChildren(juce::Graphics& g) {
 
   // Draw mappings
   for (ListMap& listMap : mListMaps) {
-    int sourceY = getLocalPoint(listMap.sourceSignal, listMap.sourceSignal->getPosition()).getY() +
+    int sourceY = getLocalPoint(listMap.sourceSignal, juce::Point<int>(0, 0)).getY() +
                   ListDeviceComponent::SIGNAL_HEIGHT / 2.0f;
     juce::Point<int> dragStart = juce::Point<int>(mDevWidth, sourceY);
-    int destY = getLocalPoint(listMap.destSignal, listMap.destSignal->getPosition()).getY() +
+    int destY = getLocalPoint(listMap.destSignal, juce::Point<int>(0, 0)).getY() +
                 ListDeviceComponent::SIGNAL_HEIGHT / 2.0f;
-    juce::Point<int> connStart = juce::Point<int>(mDevWidth, destY);
+    juce::Point<int> connStart = juce::Point<int>(mDevWidth, sourceY);
     juce::Point<int> connEnd = juce::Point<int>(getWidth() - mDevWidth, destY);
     g.setColour(juce::Colours::white);
     g.drawArrow(juce::Line<int>(connStart, connEnd).toFloat(), 4, 10, 10);
@@ -231,6 +263,51 @@ void ListViewComponent::deviceRemoved(MapperManager::Device* device) {
       }
     }
   }
+  resized();
+  repaint();
+}
+
+void ListViewComponent::mapAdded(MapperManager::Map* map) {
+  auto iter = std::find_if(
+      mListMaps.begin(), mListMaps.end(), [map](ListMap other) { return (other.map->map == map); });
+  if (iter != mListMaps.end()) return; // Skip if already added
+  ListSignalComponent* sourceComp = nullptr;
+  ListSignalComponent* destComp = nullptr;
+  // Find source signal component
+  for (ListDeviceComponent* devComp : mSourceDevices) {
+    for (ListSignalComponent* sigComp : devComp->getSignals()) {
+      if (map->signals.first->sig == sigComp->getSignal()->sig) {
+        sourceComp = sigComp;
+        break;
+      }
+    }
+    if (sourceComp != nullptr) break;
+  }
+  // Find dest signal component
+  for (ListDeviceComponent* devComp : mDestDevices) {
+    for (ListSignalComponent* sigComp : devComp->getSignals()) {
+      if (map->signals.second->sig == sigComp->getSignal()->sig) {
+        destComp = sigComp;
+        break;
+      }
+    }
+    if (destComp != nullptr) break;
+  }
+  jassert(sourceComp != nullptr && destComp != nullptr);
+  mListMaps.push_back(ListMap(map, sourceComp, destComp));
+  resized();
+  repaint();
+}
+
+void ListViewComponent::mapModified(MapperManager::Map* map) {
+
+  resized();
+  repaint();
+}
+
+void ListViewComponent::mapRemoved(MapperManager::Map* map) {
+  mListMaps.erase(std::remove_if(mListMaps.begin(), mListMaps.end(), [map](ListMap other) {
+    return other.map->map == map->map; }), mListMaps.end());
   resized();
   repaint();
 }

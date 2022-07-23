@@ -63,10 +63,22 @@ class MapperManager {
     Device* device;
   };
 
+  // Listens to map changes in the graph
+  class MapsListener {
+   public:
+    virtual void mapAdded(Map* map) = 0;
+    virtual void mapModified(Map* map) = 0;
+    virtual void mapRemoved(Map* map) = 0;
+
+    Map* map;
+  };
+
   void addListener(DevicesListener* newListener);
   void addListener(SignalsListener* newListener);
+  void addListener(MapsListener* newListener);
   void removeListener(DevicesListener* listener);
   void removeListener(SignalsListener* listener);
+  void removeListener(MapsListener* listener);
 
   /* Graph changes */
   void refreshGraph();
@@ -91,6 +103,7 @@ class MapperManager {
   juce::CriticalSection mListenerLock;
   juce::Array<DevicesListener*> mDevicesListeners;
   juce::Array<SignalsListener*> mSignalsListeners;
+  juce::Array<MapsListener*> mMapsListeners;
   int mCurDeviceColourIdx = 1;
 
   Device* getDevice(mpr_sig sig);
