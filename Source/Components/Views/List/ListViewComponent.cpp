@@ -85,14 +85,7 @@ void ListViewComponent::paint(juce::Graphics& g) {
 }
 
 void ListViewComponent::paintOverChildren(juce::Graphics& g) {
-  // Draw dragging arrow
-  if (mDragSource != nullptr) {
-    int sourceY = getLocalPoint(mDragSource, mDragSource->getLocalBounds().getTopLeft()).getY() +
-                  ListDeviceComponent::SIGNAL_HEIGHT / 2.0f;
-    juce::Point<int> dragStart = juce::Point<int>(mDevWidth, sourceY);
-    g.setColour(juce::Colours::white);
-    g.drawArrow(juce::Line<int>(dragStart, mDragPoint).toFloat(), 4, 10, 10);
-  }
+  juce::AffineTransform shadowTransform = juce::AffineTransform::translation(0.0f, 2.0f);
 
   // Draw mappings
   for (ListMap& listMap : mListMaps) {
@@ -104,7 +97,32 @@ void ListViewComponent::paintOverChildren(juce::Graphics& g) {
     juce::Point<int> connStart = juce::Point<int>(mDevWidth, sourceY);
     juce::Point<int> connEnd = juce::Point<int>(getWidth() - mDevWidth, destY);
     g.setColour(juce::Colours::white);
-    g.drawArrow(juce::Line<int>(connStart, connEnd).toFloat(), 4, 10, 10);
+    // Draw bezier curve connecting maps
+    juce::Path mapPath;
+    mapPath.startNewSubPath(connStart.toFloat());
+    mapPath.cubicTo(getWidth() / 2.0f, sourceY, getWidth() / 2.0f, destY, getWidth() - mDevWidth,
+                    destY);
+    g.strokePath(mapPath, juce::PathStrokeType(4));
+    // Shadow for path
+    g.setColour(juce::Colours::lightgrey);
+    g.strokePath(mapPath, juce::PathStrokeType(2), shadowTransform);
+  }
+
+  // Draw dragging path with bezier curve
+  if (mDragSource != nullptr) {
+    int sourceY = getLocalPoint(mDragSource, mDragSource->getLocalBounds().getTopLeft()).getY() +
+                  ListDeviceComponent::SIGNAL_HEIGHT / 2.0f;
+    juce::Point<int> dragStart = juce::Point<int>(mDevWidth, sourceY);
+    g.setColour(juce::Colours::white);
+    juce::Path dragPath;
+    float ctrlCenter = dragStart.getX() + (mDragPoint.getX() - dragStart.getX()) / 2.0f;
+    dragPath.startNewSubPath(dragStart.toFloat());
+    dragPath.cubicTo(ctrlCenter, sourceY, ctrlCenter, mDragPoint.getY(), mDragPoint.getX(),
+                     mDragPoint.getY());
+    g.strokePath(dragPath, juce::PathStrokeType(4));
+    // Shadow for path
+    g.setColour(juce::Colours::lightgrey);
+    g.strokePath(dragPath, juce::PathStrokeType(2), shadowTransform);
   }
 }
 
