@@ -119,6 +119,7 @@ void ListDeviceComponent::resized() {
   } else {
     for (ListSignalComponent* signal : mSignals) {
       signal->setVisible(false);
+      signal->setBounds(sigArea);
     }
   }
 }

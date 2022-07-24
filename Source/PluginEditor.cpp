@@ -15,6 +15,7 @@ MapperVstAudioProcessorEditor::MapperVstAudioProcessorEditor(MapperVstAudioProce
   addAndMakeVisible(mFileOpenSave);
   addAndMakeVisible(mViewSelect);
   addAndMakeVisible(mListView);
+  addAndMakeVisible(mExpressionEditor);
 
   p.mapperManager.refreshGraph();
 
@@ -40,6 +41,7 @@ void MapperVstAudioProcessorEditor::resized() {
 
   mFileOpenSave.setBounds(topPanel.removeFromLeft(getWidth() * 0.1f));
   mViewSelect.setBounds(topPanel.removeFromLeft(getWidth() * 0.2f));
+  mExpressionEditor.setBounds(topPanel.removeFromLeft(getWidth() * 0.4f));
 
   // List view
   mListView.setBounds(r);

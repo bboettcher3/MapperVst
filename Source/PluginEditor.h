@@ -13,6 +13,7 @@
 #include "Components/Views/List/ListViewComponent.h"
 #include "Components/Menus/FileOpenSaveComponent.h"
 #include "Components/Menus/ViewSelectComponent.h"
+#include "Components/Menus/ExpressionEditorComponent.h"
 
 #ifdef WIN32
 #define _WINSOCKAPI_  // for winsock1/2 conflicts
@@ -41,6 +42,7 @@ class MapperVstAudioProcessorEditor : public juce::AudioProcessorEditor {
   FileOpenSaveComponent mFileOpenSave;
   ViewSelectComponent mViewSelect;
   ListViewComponent mListView;
+  ExpressionEditorComponent mExpressionEditor;
 
   // This reference is provided as a quick way for your editor to
   // access the processor object that created it.
