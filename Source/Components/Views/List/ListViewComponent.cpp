@@ -95,16 +95,21 @@ void ListViewComponent::paintOverChildren(juce::Graphics& g) {
     int destY = getLocalPoint(listMap.destSignal, juce::Point<int>(0, 0)).getY() +
                 ListDeviceComponent::SIGNAL_HEIGHT / 2.0f;
     juce::Point<int> connStart = juce::Point<int>(mDevWidth, sourceY);
-    juce::Point<int> connEnd = juce::Point<int>(getWidth() - mDevWidth, destY);
-    g.setColour(juce::Colours::white);
+    
     // Draw bezier curve connecting maps
     juce::Path mapPath;
     mapPath.startNewSubPath(connStart.toFloat());
     mapPath.cubicTo(getWidth() / 2.0f, sourceY, getWidth() / 2.0f, destY, getWidth() - mDevWidth,
                     destY);
+    listMap.path = mapPath;
+    juce::Colour mapColour =
+        (mSelectedMap == &listMap)
+            ? juce::Colours::palevioletred
+            : ((mHoverMap == &listMap) ? juce::Colours::palegreen : juce::Colours::white);
+    g.setColour(mapColour);
     g.strokePath(mapPath, juce::PathStrokeType(4));
     // Shadow for path
-    g.setColour(juce::Colours::lightgrey);
+    g.setColour(mapColour.darker());
     g.strokePath(mapPath, juce::PathStrokeType(2), shadowTransform);
   }
 
@@ -119,6 +124,7 @@ void ListViewComponent::paintOverChildren(juce::Graphics& g) {
     dragPath.startNewSubPath(dragStart.toFloat());
     dragPath.cubicTo(ctrlCenter, sourceY, ctrlCenter, mDragPoint.getY(), mDragPoint.getX(),
                      mDragPoint.getY());
+    mDragPath = dragPath;
     g.strokePath(dragPath, juce::PathStrokeType(4));
     // Shadow for path
     g.setColour(juce::Colours::lightgrey);
@@ -178,6 +184,7 @@ void ListViewComponent::mouseDrag(const juce::MouseEvent& e) {
 }
 
 void ListViewComponent::mouseUp(const juce::MouseEvent& e) {
+  // Check if a new mapping should be created
   if (mDragSource != nullptr && mDragDest != nullptr) {
     // Add new mapping
     mpr_map newMap =
@@ -193,11 +200,16 @@ void ListViewComponent::mouseUp(const juce::MouseEvent& e) {
   mDragPoint = juce::Point<int>();
   mDragSource = nullptr;
   mDragDest = nullptr;
+
+  // Select hovered map (if one is selected)
+  mSelectedMap = mHoverMap;
+
   repaint();
 }
 
 void ListViewComponent::mouseMove(const juce::MouseEvent& e) {
   // TODO: a bit messy being called from mouseDrag(), can maybe clean up
+  // Check for hovering inside signal components
   auto thisE = e.getEventRelativeTo(this);
   for (ListDeviceComponent* devComp : mSourceDevices) {
     for (ListSignalComponent* sigComp : devComp->getSignals()) {
@@ -211,6 +223,21 @@ void ListViewComponent::mouseMove(const juce::MouseEvent& e) {
       sigComp->setIsHovering(isInside || mDragDest == sigComp);
     }
   }
+  
+  // Check for hovering over map if not dragging
+  mHoverMap = nullptr;
+  if (mDragSource == nullptr) {
+    for (ListMap& listMap : mListMaps) {
+      juce::Point<float> pathPoint;
+      listMap.path.getNearestPoint(thisE.getPosition().toFloat(), pathPoint);
+      float distance = thisE.getPosition().toFloat().getDistanceFrom(pathPoint);
+      if (distance < MIN_MAP_SELECT_DISTANCE) {
+        mHoverMap = &listMap;
+      }
+    }
+  }
+
+  repaint();
 }
 
 void ListViewComponent::deviceAdded(MapperManager::Device* device) {
@@ -324,6 +351,7 @@ void ListViewComponent::mapModified(MapperManager::Map* map) {
 }
 
 void ListViewComponent::mapRemoved(MapperManager::Map* map) {
+  mHoverMap = nullptr;
   mListMaps.erase(std::remove_if(mListMaps.begin(), mListMaps.end(), [map](ListMap other) {
     return other.map->map == map->map; }), mListMaps.end());
   resized();

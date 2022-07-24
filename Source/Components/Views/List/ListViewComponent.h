@@ -41,14 +41,16 @@ class ListViewComponent : public juce::Component, MapperManager::DevicesListener
   MapperManager& getMapperManager() { return mMapperManager; }  // called from device callback
 
  private:
-  static constexpr auto DIR_LABEL_HEIGHT = 20;
-  static constexpr auto MAPPING_GAP = 100;
+  static constexpr int DIR_LABEL_HEIGHT = 20;
+  static constexpr int MAPPING_GAP = 100;
+  static constexpr int MIN_MAP_SELECT_DISTANCE = 10;
 
   typedef struct ListMap {
     ListMap(MapperManager::Map* map, ListSignalComponent* sourceSignal,
             ListSignalComponent* destSignal)
         : map(map), sourceSignal(sourceSignal), destSignal(destSignal) {}
     MapperManager::Map* map;
+    juce::Path path;
     ListSignalComponent* sourceSignal;  // TODO: vector to allow complex
     ListSignalComponent* destSignal;
   } ListMap;
@@ -58,7 +60,10 @@ class ListViewComponent : public juce::Component, MapperManager::DevicesListener
   ListSignalComponent* mDragSource = nullptr; // Only non-null sig if currently dragging
   ListSignalComponent* mDragDest = nullptr;
   ListSignalComponent* mHoverSig = nullptr; // Only non-null if hovering over a signal
+  ListMap* mHoverMap = nullptr;
+  ListMap* mSelectedMap = nullptr;
   juce::Point<int> mDragPoint;
+  juce::Path mDragPath;
   std::vector<ListMap> mListMaps;
   int mDevWidth;
 
