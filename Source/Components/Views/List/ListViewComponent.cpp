@@ -60,6 +60,7 @@ ListViewComponent::ListViewComponent(MapperManager& manager) : mMapperManager(ma
   manager.addListener((MapperManager::DevicesListener*)this);
   manager.addListener((MapperManager::MapsListener*)this);
   addMouseListener(this, true);
+  addKeyListener(this);
 }
 
 ListViewComponent::~ListViewComponent() {
@@ -148,6 +149,16 @@ void ListViewComponent::resized() {
     curY += device->getHeight();
   }
 }
+
+bool ListViewComponent::keyPressed(const juce::KeyPress& key,
+                                   juce::Component* originatingComponent) {
+  if (key.isKeyCode(juce::KeyPress::deleteKey) && mSelectedMap != nullptr) {
+    mMapperManager.removeMap(mSelectedMap->map->map);
+    return true;
+  }
+  return false;
+}
+
 
 void ListViewComponent::mouseDrag(const juce::MouseEvent& e) {
   // Signal mapping drag

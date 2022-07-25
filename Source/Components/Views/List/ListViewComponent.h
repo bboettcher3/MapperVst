@@ -18,6 +18,7 @@
 /*
  */
 class ListViewComponent : public juce::Component,
+                          juce::KeyListener,
                           MapperManager::DevicesListener,
                           MapperManager::MapsListener {
  public:
@@ -27,6 +28,8 @@ class ListViewComponent : public juce::Component,
   void paint(juce::Graphics&) override;
   void paintOverChildren(juce::Graphics&) override;
   void resized() override;
+
+  bool keyPressed(const juce::KeyPress& key, juce::Component* originatingComponent) override;
 
   void mouseDrag(const juce::MouseEvent& e) override;
   void mouseUp(const juce::MouseEvent& e) override;

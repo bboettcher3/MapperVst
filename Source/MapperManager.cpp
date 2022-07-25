@@ -212,6 +212,7 @@ void MapperManager::removeMap(mpr_map map) {
     for (MapsListener* listener : mMapsListeners) {
       listener->mapRemoved(*iter);
     }
+    mpr_map_release((*iter)->map);
     maps.removeObject(*iter);
   }
 }

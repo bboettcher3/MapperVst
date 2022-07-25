@@ -27,6 +27,8 @@ ExpressionEditorComponent::ExpressionEditorComponent(MapperManager& manager)
   mBtnApply.setEnabled(false);
   addAndMakeVisible(mBtnApply);
   mBtnClear.setButtonText("Clear");
+  mBtnClear.setEnabled(false);
+  mBtnClear.onClick = [this] { mExpressionText.setText(""); };
   addAndMakeVisible(mBtnClear);
 
   // Text editor
@@ -34,7 +36,11 @@ ExpressionEditorComponent::ExpressionEditorComponent(MapperManager& manager)
   mExpressionText.setReturnKeyStartsNewLine(true);
   mExpressionText.setFont(
       juce::Font::fromString(juce::Font::getDefaultMonospacedFontName()).withHeight(14));
-  mExpressionText.onTextChange = [this] { mBtnApply.setEnabled(true); };
+  mExpressionText.onTextChange = [this] {
+    mBtnApply.setEnabled(true);
+    mBtnClear.setEnabled(mExpressionText.getText().isNotEmpty());
+    resized();
+  };
   addAndMakeVisible(mExpressionText);
 
   mMapperManager.addListener(this);
@@ -75,7 +81,8 @@ void ExpressionEditorComponent::updateExpression(MapperManager::Map* map) {
       // Must be a new map, show it as a default map
       expression = MapperManager::DEFAULT_MAP_EXPRESSION;
     }
-    mExpressionText.setText(expression);
+    mExpressionText.setText(expression, false);
+    mBtnClear.setEnabled(true);
   }
   mSelectedMap = map;
   repaint();
