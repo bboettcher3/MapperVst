@@ -69,7 +69,7 @@ void MapperManager::removeListener(MapsListener* listener) {
 
 void MapperManager::refreshGraph() {
   // Sync graph with network
-  mpr_graph_poll(graph, 500);
+  mpr_graph_poll(graph, 50);
 }
 
 void MapperManager::checkAddDevice(mpr_dev device) {
@@ -214,6 +214,16 @@ void MapperManager::removeMap(mpr_map map) {
     }
     maps.removeObject(*iter);
   }
+}
+
+void MapperManager::setSelectedMap(Map* map) {
+  if (map != mSelectedMap) {
+    juce::ScopedLock lock(mListenerLock);
+    for (MapsListener* listener : mMapsListeners) {
+      listener->mapSelected(map);
+    }
+  }
+  mSelectedMap = map;
 }
 
 MapperManager::Device* MapperManager::getDevice(mpr_sig sig) {

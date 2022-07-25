@@ -101,4 +101,5 @@ static inline juce::Colour getRainbow12Colour(int value) {
   }
   return juce::Colour(r * 255.0f, g * 255.0f, b * 255.0f);
 }
+
 };  // namespace Utilities

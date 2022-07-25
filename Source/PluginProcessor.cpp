@@ -23,7 +23,7 @@ MapperVstAudioProcessor::MapperVstAudioProcessor()
 #endif
 {
 
-  startTimer(3000);
+  startTimer(1000);
 }
 
 MapperVstAudioProcessor::~MapperVstAudioProcessor()

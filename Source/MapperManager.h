@@ -67,6 +67,7 @@ class MapperManager {
   class MapsListener {
    public:
     virtual void mapAdded(Map* map) = 0;
+    virtual void mapSelected(Map* map) = 0;
     virtual void mapModified(Map* map) = 0;
     virtual void mapRemoved(Map* map) = 0;
 
@@ -92,6 +93,11 @@ class MapperManager {
   Map* checkAddMap(mpr_map map);
   void removeMap(mpr_map map);
 
+  /* Global view selections */
+  void setSelectedMap(Map* map);
+
+  static constexpr auto DEFAULT_MAP_EXPRESSION = "y=x";
+
   mpr_graph graph;  // libmapper graph that keeps track of network (created by processor)
   juce::OwnedArray<Device> devices;
   juce::OwnedArray<Map> maps;
@@ -105,6 +111,7 @@ class MapperManager {
   juce::Array<SignalsListener*> mSignalsListeners;
   juce::Array<MapsListener*> mMapsListeners;
   int mCurDeviceColourIdx = 1;
+  Map* mSelectedMap = nullptr;
 
   Device* getDevice(mpr_sig sig);
   static void deviceCallbackHandler(mpr_graph g, mpr_dev dev, mpr_graph_evt e, const void* context);

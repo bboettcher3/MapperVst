@@ -189,20 +189,24 @@ void ListViewComponent::mouseUp(const juce::MouseEvent& e) {
     // Add new mapping
     mpr_map newMap =
         mpr_map_new(1, &mDragSource->getSignal()->sig, 1, &mDragDest->getSignal()->sig);
+    mpr_obj_set_prop(newMap, MPR_PROP_EXPR, nullptr, 1, MPR_STR,
+                     MapperManager::DEFAULT_MAP_EXPRESSION, 1);
     mpr_obj_push(newMap);
     MapperManager::Map* map = mMapperManager.checkAddMap(newMap);
     auto iter = std::find_if(mListMaps.begin(), mListMaps.end(),
                              [map](ListMap other) { return other.map->map == map->map; });
-    if (iter == mListMaps.end()) {
-      mListMaps.push_back(ListMap(map, mDragSource, mDragDest));
+    if (iter != mListMaps.end()) {
+      mSelectedMap = &(*iter);
+      mMapperManager.setSelectedMap(map);
     }
+    
+  } else {
+    mSelectedMap = mHoverMap;
+    mMapperManager.setSelectedMap((mSelectedMap != nullptr) ? mSelectedMap->map : nullptr);
   }
   mDragPoint = juce::Point<int>();
   mDragSource = nullptr;
   mDragDest = nullptr;
-
-  // Select hovered map (if one is selected)
-  mSelectedMap = mHoverMap;
 
   repaint();
 }
@@ -314,7 +318,7 @@ void ListViewComponent::deviceRemoved(MapperManager::Device* device) {
 
 void ListViewComponent::mapAdded(MapperManager::Map* map) {
   auto iter = std::find_if(
-      mListMaps.begin(), mListMaps.end(), [map](ListMap other) { return (other.map->map == map); });
+      mListMaps.begin(), mListMaps.end(), [map](ListMap& other) { return (other.map->map == map); });
   if (iter != mListMaps.end()) return; // Skip if already added
   ListSignalComponent* sourceComp = nullptr;
   ListSignalComponent* destComp = nullptr;
@@ -344,8 +348,20 @@ void ListViewComponent::mapAdded(MapperManager::Map* map) {
   repaint();
 }
 
-void ListViewComponent::mapModified(MapperManager::Map* map) {
+void ListViewComponent::mapSelected(MapperManager::Map* map) {
+  if (map == nullptr) {
+    mSelectedMap = nullptr;
+    return;
+  }
+  auto iter = std::find_if(mListMaps.begin(), mListMaps.end(),
+                           [map](ListMap& other) { return other.map->map == map->map; });
+  if (iter != mListMaps.end()) {
+    mSelectedMap = &(*iter);
+  }
+}
 
+void ListViewComponent::mapModified(MapperManager::Map* map) {
+  // TODO
   resized();
   repaint();
 }
