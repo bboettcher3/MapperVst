@@ -23,7 +23,7 @@ ListDeviceComponent::ListDeviceComponent(MapperManager& manager, MapperManager::
       (mDir == MPR_DIR_OUT) ? device->sourceSignals : device->destSignals;
   for (MapperManager::Signal* signal : signals) {
     juce::Colour sigColour =
-        mDevice->colour.withAlpha((mSignals.size() % 2) ? SIG_EVEN_ALPHA : SIG_ODD_ALPHA);
+        mDevice->colour.darker((mSignals.size() % 2) ? SIG_EVEN_DARKER : SIG_ODD_DARKER);
     auto newSignal = new ListSignalComponent(signal, sigColour);
     mSignals.add(newSignal);
     addAndMakeVisible(newSignal);
@@ -73,7 +73,10 @@ void ListDeviceComponent::paint(juce::Graphics& g) {
           : juce::Rectangle<int>(getWidth() / 2.0f, 0, getWidth() / 2.0f, SIGNAL_HEIGHT);
 
   g.setColour(mDevice->colour);
-  g.fillRect(devPanel);
+  g.fillRect(devPanel.withSizeKeepingCentre(devPanel.getWidth() - 2, devPanel.getHeight() - 2));
+
+  g.setColour(juce::Colours::black);
+  g.drawRect(devPanel, 1);  // draw an outline around the component
 
   // Device name and info
   g.setColour(juce::Colours::black);
@@ -144,7 +147,7 @@ void ListDeviceComponent::signalAdded(MapperManager::Signal* signal) {
   });
   if (iter == mSignals.end()) {
     juce::Colour sigColour =
-        mDevice->colour.withAlpha((mSignals.size() % 2) ? SIG_EVEN_ALPHA : SIG_ODD_ALPHA);
+        mDevice->colour.darker((mSignals.size() % 2) ? SIG_EVEN_DARKER : SIG_ODD_DARKER);
     auto newSignal = new ListSignalComponent(signal, sigColour);
     mSignals.add(newSignal);
     addAndMakeVisible(newSignal);
@@ -158,7 +161,7 @@ void ListDeviceComponent::signalRemoved(MapperManager::Signal* signal) {
       // Update signal colours
       for (int i = 0; i < mSignals.size(); ++i) {
         juce::Colour sigColour =
-            mDevice->colour.withAlpha((i % 2) ? SIG_EVEN_ALPHA : SIG_ODD_ALPHA);
+            mDevice->colour.darker((i % 2) ? SIG_EVEN_DARKER : SIG_ODD_DARKER);
         mSignals[i]->setColour(sigColour);
       }
       updateSize();

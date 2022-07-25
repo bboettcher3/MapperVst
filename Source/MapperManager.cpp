@@ -80,7 +80,7 @@ void MapperManager::checkAddDevice(mpr_dev device) {
 
   mCurDeviceColourIdx =
       (mCurDeviceColourIdx + 1 + (Utilities::NUM_COLOURS / 2)) % Utilities::NUM_COLOURS;
-  juce::Colour devColour = Utilities::getRainbow12Colour(mCurDeviceColourIdx);
+  juce::Colour devColour = Utilities::getRainbow12Colour(mCurDeviceColourIdx).brighter(1.3f);
   Device* newDev = new Device(device, devColour);
   devices.add(newDev);
   DBG("add dev: " + juce::String(mpr_obj_get_prop_as_str(device, MPR_PROP_NAME, nullptr)));

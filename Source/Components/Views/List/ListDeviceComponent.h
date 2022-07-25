@@ -37,8 +37,8 @@ class ListDeviceComponent : public juce::Component, MapperManager::SignalsListen
   static constexpr int SIGNAL_HEIGHT = 30;
 
  private:
-  static constexpr float SIG_ODD_ALPHA = 0.7f;
-  static constexpr float SIG_EVEN_ALPHA = 0.4f;
+  static constexpr float SIG_ODD_DARKER = 0.7f;
+  static constexpr float SIG_EVEN_DARKER = 0.4f;
 
   // Bookkeeping
   MapperManager& mMapperManager;
