@@ -87,12 +87,18 @@ void ListViewComponent::paintOverChildren(juce::Graphics& g) {
                         getWidth() - mDevWidth, destY);
       }
     }
-    // Shadow for path
+    // Shadow and map path
     g.setColour(mapColour.darker());
     g.strokePath(mapPath, juce::PathStrokeType(2), shadowTransform);
-
+    if (listMap.sourceSigComps.size() > 1) {
+      // Convergent map dot
+      juce::Point<float> dotPoint = mapPath.getPointAlongPath(mapPath.getLength() - 20);
+      mapPath.addEllipse(juce::Rectangle<float>().withSize(8, 8).withCentre(dotPoint));
+    }
     g.setColour(mapColour);
     g.strokePath(mapPath, juce::PathStrokeType(4));
+
+
     listMap.path = mapPath;
   }
 
@@ -145,27 +151,30 @@ bool ListViewComponent::keyPressed(const juce::KeyPress& key,
 void ListViewComponent::mouseDrag(const juce::MouseEvent& e) {
   // Signal mapping drag
 
+  mDragDestSig = nullptr;  // Reset every frame in case mouse dragged outside
+  mDragDestMap = nullptr;
+
   // Check for destinations if we have a source
   if (mDragSource == nullptr) {
-    mDragDest = nullptr;
     // Check for a source
     for (ListDeviceComponent* devComp : mSourceDevices) {
       for (ListSignalComponent* sigComp : devComp->getSignals()) {
         if (e.eventComponent == sigComp) {
           mDragSource = sigComp;
           mDragPoint = e.getEventRelativeTo(this).getPosition();
+          mSelectedMap = nullptr;
         }
       }
     }
   } else {
-    mDragDest = nullptr; // Reset every frame in case mouse dragged outside
     auto thisE = e.getEventRelativeTo(this);
     mDragPoint = thisE.getPosition();
+    // Check for dest signal
     for (ListDeviceComponent* devComp : mDestDevices) {
       for (ListSignalComponent* sigComp : devComp->getSignals()) {
         bool isInside = sigComp->contains(sigComp->getLocalPoint(this, thisE.getPosition()));
         if (isInside) {
-          mDragDest = sigComp;
+          mDragDestSig = sigComp;
         }
       }
     }
@@ -178,10 +187,10 @@ void ListViewComponent::mouseDrag(const juce::MouseEvent& e) {
 
 void ListViewComponent::mouseUp(const juce::MouseEvent& e) {
   // Check if a new mapping should be created
-  if (mDragSource != nullptr && mDragDest != nullptr) {
+  if (mDragSource != nullptr && mDragDestSig != nullptr) {
     // Add new mapping
     mpr_map newMap =
-        mpr_map_new(1, &mDragSource->getSignal()->sig, 1, &mDragDest->getSignal()->sig);
+        mpr_map_new(1, &mDragSource->getSignal()->sig, 1, &mDragDestSig->getSignal()->sig);
     mpr_obj_set_prop(newMap, MPR_PROP_EXPR, nullptr, 1, MPR_STR,
                      MapperManager::DEFAULT_MAP_EXPRESSION, 1);
     mpr_obj_push(newMap);
@@ -192,14 +201,34 @@ void ListViewComponent::mouseUp(const juce::MouseEvent& e) {
       mSelectedMap = &(*iter);
       mMapperManager.setSelectedMap(map);
     }
-    
+  } else if (mDragSource != nullptr && mHoverMap != nullptr) {
+    // Create convergent map
+    // TODO: give other options aside from add
+    std::vector<mpr_sig> srcSigs;
+    for (MapperManager::Signal* srcSig : mHoverMap->map->sourceSignals) {
+      srcSigs.push_back(srcSig->sig);
+    }
+    srcSigs.push_back(mDragSource->getSignal()->sig);
+    std::vector<mpr_sig> dstSigs;
+    for (MapperManager::Signal* dstSig : mHoverMap->map->destSignals) {
+      dstSigs.push_back(dstSig->sig);
+    }
+    mpr_map oldMap =
+        mHoverMap->map->map;  // Save before it gets cleared by the callback and we can delete it
+    mpr_map convergentMap =
+        mpr_map_new(srcSigs.size(), srcSigs.data(), dstSigs.size(), dstSigs.data());
+    mpr_obj_push(convergentMap);
+    mMapperManager.checkAddMap(convergentMap);
+    // Remove old map
+    mMapperManager.removeMap(oldMap);
   } else {
     mSelectedMap = mHoverMap;
     mMapperManager.setSelectedMap((mSelectedMap != nullptr) ? mSelectedMap->map : nullptr);
   }
   mDragPoint = juce::Point<int>();
   mDragSource = nullptr;
-  mDragDest = nullptr;
+  mDragDestSig = nullptr;
+  mDragDestMap = nullptr;
 
   repaint();
 }
@@ -217,20 +246,18 @@ void ListViewComponent::mouseMove(const juce::MouseEvent& e) {
   for (ListDeviceComponent* devComp : mDestDevices) {
     for (ListSignalComponent* sigComp : devComp->getSignals()) {
       bool isInside = sigComp->contains(sigComp->getLocalPoint(this, thisE.getPosition()));
-      sigComp->setIsHovering(isInside || mDragDest == sigComp);
+      sigComp->setIsHovering(isInside || mDragDestSig == sigComp);
     }
   }
   
   // Check for hovering over map if not dragging
   mHoverMap = nullptr;
-  if (mDragSource == nullptr) {
-    for (ListMap& listMap : mListMaps) {
-      juce::Point<float> pathPoint;
-      listMap.path.getNearestPoint(thisE.getPosition().toFloat(), pathPoint);
-      float distance = thisE.getPosition().toFloat().getDistanceFrom(pathPoint);
-      if (distance < MIN_MAP_SELECT_DISTANCE) {
-        mHoverMap = &listMap;
-      }
+  for (ListMap& listMap : mListMaps) {
+    juce::Point<float> pathPoint;
+    listMap.path.getNearestPoint(thisE.getPosition().toFloat(), pathPoint);
+    float distance = thisE.getPosition().toFloat().getDistanceFrom(pathPoint);
+    if (distance < MIN_MAP_SELECT_DISTANCE) {
+      mHoverMap = &listMap;
     }
   }
 

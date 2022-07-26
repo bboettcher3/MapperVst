@@ -64,7 +64,8 @@ class ListViewComponent : public juce::Component,
   // Bookkeeping
   MapperManager& mMapperManager;
   ListSignalComponent* mDragSource = nullptr; // Only non-null sig if currently dragging
-  ListSignalComponent* mDragDest = nullptr;
+  ListSignalComponent* mDragDestSig = nullptr;
+  ListMap* mDragDestMap = nullptr;
   ListSignalComponent* mHoverSig = nullptr; // Only non-null if hovering over a signal
   ListMap* mHoverMap = nullptr;
   ListMap* mSelectedMap = nullptr;
