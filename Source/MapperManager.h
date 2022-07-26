@@ -37,11 +37,12 @@ class MapperManager {
 
   typedef struct Map {
     Map() : map(nullptr) {}
-    Map(mpr_map map, Signal* sourceSignal, Signal* destSignal)
-        : map(map), signals(sourceSignal, destSignal) {}
+    Map(mpr_map map, std::vector<Signal*> sourceSignals, std::vector<Signal*> destSignals)
+        : map(map), sourceSignals(sourceSignals), destSignals(destSignals) {}
     bool operator==(const Map& m) { return (map == m.map); }
     mpr_map map;
-    std::pair<Signal*, Signal*> signals;
+    std::vector<Signal*> sourceSignals;
+    std::vector<Signal*> destSignals;
   } Map;
 
   // Listens to device changes in the graph

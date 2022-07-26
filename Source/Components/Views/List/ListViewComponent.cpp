@@ -31,30 +31,7 @@ ListViewComponent::ListViewComponent(MapperManager& manager) : mMapperManager(ma
 
   // Populate maps
   for (MapperManager::Map* map : manager.maps) {
-    ListSignalComponent* sourceComp = nullptr;
-    ListSignalComponent* destComp = nullptr;
-    // Find source signal component
-    for (ListDeviceComponent* devComp : mSourceDevices) {
-      for (ListSignalComponent* sigComp : devComp->getSignals()) {
-        if (map->signals.first->sig == sigComp->getSignal()->sig) {
-          sourceComp = sigComp;
-          break;
-        }
-      }
-      if (sourceComp != nullptr) break;
-    }
-    // Find dest signal component
-    for (ListDeviceComponent* devComp : mDestDevices) {
-      for (ListSignalComponent* sigComp : devComp->getSignals()) {
-        if (map->signals.second->sig == sigComp->getSignal()->sig) {
-          destComp = sigComp;
-          break;
-        }
-      }
-      if (destComp != nullptr) break;
-    }
-    jassert(sourceComp != nullptr && destComp != nullptr);
-    mListMaps.push_back(ListMap(map, sourceComp, destComp));
+    addListMap(map);
   }
 
   manager.addListener((MapperManager::DevicesListener*)this);
@@ -86,32 +63,37 @@ void ListViewComponent::paint(juce::Graphics& g) {
 }
 
 void ListViewComponent::paintOverChildren(juce::Graphics& g) {
-  juce::AffineTransform shadowTransform = juce::AffineTransform::translation(0.0f, 2.0f);
+  juce::AffineTransform shadowTransform = juce::AffineTransform::translation(0.0f, 3.0f);
 
   // Draw mappings
   for (ListMap& listMap : mListMaps) {
-    int sourceY = getLocalPoint(listMap.sourceSignal, juce::Point<int>(0, 0)).getY() +
-                  ListDeviceComponent::SIGNAL_HEIGHT / 2.0f;
-    juce::Point<int> dragStart = juce::Point<int>(mDevWidth, sourceY);
-    int destY = getLocalPoint(listMap.destSignal, juce::Point<int>(0, 0)).getY() +
-                ListDeviceComponent::SIGNAL_HEIGHT / 2.0f;
-    juce::Point<int> connStart = juce::Point<int>(mDevWidth, sourceY);
-    
-    // Draw bezier curve connecting maps
-    juce::Path mapPath;
-    mapPath.startNewSubPath(connStart.toFloat());
-    mapPath.cubicTo(getWidth() / 2.0f, sourceY, getWidth() / 2.0f, destY, getWidth() - mDevWidth,
-                    destY);
-    listMap.path = mapPath;
     juce::Colour mapColour =
         (mSelectedMap == &listMap)
             ? juce::Colours::palevioletred
             : ((mHoverMap == &listMap) ? juce::Colours::palegreen : juce::Colours::white);
-    g.setColour(mapColour);
-    g.strokePath(mapPath, juce::PathStrokeType(4));
+    juce::Path mapPath;
+    for (ListSignalComponent* sourceSigComp : listMap.sourceSigComps) {
+      for (ListSignalComponent* destSigComp : listMap.destSigComps) {
+        int sourceY = getLocalPoint(sourceSigComp, juce::Point<int>(0, 0)).getY() +
+                      ListDeviceComponent::SIGNAL_HEIGHT / 2.0f;
+        juce::Point<int> dragStart = juce::Point<int>(mDevWidth, sourceY);
+        int destY = getLocalPoint(destSigComp, juce::Point<int>(0, 0)).getY() +
+                    ListDeviceComponent::SIGNAL_HEIGHT / 2.0f;
+        juce::Point<int> connStart = juce::Point<int>(mDevWidth, sourceY);
+
+        // Draw bezier curve connecting maps
+        mapPath.startNewSubPath(connStart.toFloat());
+        mapPath.cubicTo(getWidth() / 2.0f, sourceY, getWidth() / 2.0f, destY,
+                        getWidth() - mDevWidth, destY);
+      }
+    }
     // Shadow for path
     g.setColour(mapColour.darker());
     g.strokePath(mapPath, juce::PathStrokeType(2), shadowTransform);
+
+    g.setColour(mapColour);
+    g.strokePath(mapPath, juce::PathStrokeType(4));
+    listMap.path = mapPath;
   }
 
   // Draw dragging path with bezier curve
@@ -331,30 +313,7 @@ void ListViewComponent::mapAdded(MapperManager::Map* map) {
   auto iter = std::find_if(
       mListMaps.begin(), mListMaps.end(), [map](ListMap& other) { return (other.map->map == map); });
   if (iter != mListMaps.end()) return; // Skip if already added
-  ListSignalComponent* sourceComp = nullptr;
-  ListSignalComponent* destComp = nullptr;
-  // Find source signal component
-  for (ListDeviceComponent* devComp : mSourceDevices) {
-    for (ListSignalComponent* sigComp : devComp->getSignals()) {
-      if (map->signals.first->sig == sigComp->getSignal()->sig) {
-        sourceComp = sigComp;
-        break;
-      }
-    }
-    if (sourceComp != nullptr) break;
-  }
-  // Find dest signal component
-  for (ListDeviceComponent* devComp : mDestDevices) {
-    for (ListSignalComponent* sigComp : devComp->getSignals()) {
-      if (map->signals.second->sig == sigComp->getSignal()->sig) {
-        destComp = sigComp;
-        break;
-      }
-    }
-    if (destComp != nullptr) break;
-  }
-  jassert(sourceComp != nullptr && destComp != nullptr);
-  mListMaps.push_back(ListMap(map, sourceComp, destComp));
+  addListMap(map);
   resized();
   repaint();
 }
@@ -383,4 +342,39 @@ void ListViewComponent::mapRemoved(MapperManager::Map* map) {
     return other.map->map == map->map; }), mListMaps.end());
   resized();
   repaint();
+}
+
+void ListViewComponent::addListMap(MapperManager::Map* map) {
+  std::vector<ListSignalComponent*> sourceSigComps;
+  std::vector<ListSignalComponent*> destSigComps;
+
+  // Find source signal component (TODO: clean this triple loop shit up)
+  for (MapperManager::Signal* sig : map->sourceSignals) {
+    bool sigFound = false;
+    for (ListDeviceComponent* devComp : mSourceDevices) {
+      for (ListSignalComponent* sigComp : devComp->getSignals()) {
+        if (sig == sigComp->getSignal()) {
+          sourceSigComps.push_back(sigComp);
+          sigFound = true;
+          break;
+        }
+      }
+      if (sigFound) break;
+    }
+  }
+  // Find dest signal component
+  for (MapperManager::Signal* sig : map->destSignals) {
+    bool sigFound = false;
+    for (ListDeviceComponent* devComp : mDestDevices) {
+      for (ListSignalComponent* sigComp : devComp->getSignals()) {
+        if (sig == sigComp->getSignal()) {
+          destSigComps.push_back(sigComp);
+          sigFound = true;
+          break;
+        }
+      }
+      if (sigFound) break;
+    }
+  }
+  mListMaps.push_back(ListMap(map, sourceSigComps, destSigComps));
 }

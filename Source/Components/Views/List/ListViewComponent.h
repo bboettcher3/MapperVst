@@ -52,13 +52,13 @@ class ListViewComponent : public juce::Component,
   static constexpr int MIN_MAP_SELECT_DISTANCE = 10;
 
   typedef struct ListMap {
-    ListMap(MapperManager::Map* map, ListSignalComponent* sourceSignal,
-            ListSignalComponent* destSignal)
-        : map(map), sourceSignal(sourceSignal), destSignal(destSignal) {}
+    ListMap(MapperManager::Map* map, std::vector<ListSignalComponent*> sourceSigComps,
+            std::vector<ListSignalComponent*> destSigComps)
+        : map(map), sourceSigComps(sourceSigComps), destSigComps(destSigComps) {}
     MapperManager::Map* map;
     juce::Path path;
-    ListSignalComponent* sourceSignal;  // TODO: vector to allow complex
-    ListSignalComponent* destSignal;
+    std::vector<ListSignalComponent*> sourceSigComps;
+    std::vector<ListSignalComponent*> destSigComps;
   } ListMap;
 
   // Bookkeeping
@@ -76,6 +76,8 @@ class ListViewComponent : public juce::Component,
   // Device components
   juce::OwnedArray<ListDeviceComponent> mSourceDevices;
   juce::OwnedArray<ListDeviceComponent> mDestDevices;
+
+  void addListMap(MapperManager::Map* map);
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ListViewComponent)
 };

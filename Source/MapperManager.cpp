@@ -169,11 +169,18 @@ void MapperManager::removeSignal(mpr_sig sig) {
 }
 
 MapperManager::Map* MapperManager::checkAddMap(mpr_map map) {
-  mpr_sig sourceSig = *mpr_map_get_sigs(map, MPR_LOC_SRC);
-  mpr_sig destSig = *mpr_map_get_sigs(map, MPR_LOC_DST);
-  jassert(sourceSig && destSig);
-  Signal* sourceSignal = checkAddSignal(sourceSig);
-  Signal* destSignal = checkAddSignal(destSig);
+  mpr_list sourceSigs = mpr_map_get_sigs(map, MPR_LOC_SRC);
+  std::vector<Signal*> sourceSignals;
+  for (int i = 0; i < mpr_list_get_size(sourceSigs); ++i) {
+    Signal* sourceSignal = checkAddSignal(mpr_list_get_idx(sourceSigs, i));
+    sourceSignals.push_back(sourceSignal);
+  }
+  mpr_list destSigs = mpr_map_get_sigs(map, MPR_LOC_DST);
+  std::vector<Signal*> destSignals;
+  for (int i = 0; i < mpr_list_get_size(destSigs); ++i) {
+    Signal* destSignal = checkAddSignal(mpr_list_get_idx(destSigs, i));
+    destSignals.push_back(destSignal);
+  }
   
   // Skip if already added
   auto mapIter = std::find_if(maps.begin(), maps.end(), [map](Map* other) { return other->map == map; });
@@ -181,14 +188,16 @@ MapperManager::Map* MapperManager::checkAddMap(mpr_map map) {
     return *mapIter;
   }
   
-  jassert(sourceSignal != nullptr && destSignal != nullptr);
-  Map* newMap = new Map(map, sourceSignal, destSignal);
+  Map* newMap = new Map(map, sourceSignals, destSignals);
   maps.add(newMap);
 
-  DBG("add map: " +
-      juce::String(mpr_obj_get_prop_as_str(newMap->signals.first->sig, MPR_PROP_NAME, nullptr)) +
-      juce::String(" -> ") +
-      juce::String(mpr_obj_get_prop_as_str(newMap->signals.second->sig, MPR_PROP_NAME, nullptr)));
+  if (newMap->sourceSignals.size() > 0 && newMap->destSignals.size() > 0) {
+    DBG("add map: " +
+        juce::String(
+            mpr_obj_get_prop_as_str(newMap->sourceSignals.front()->sig, MPR_PROP_NAME, nullptr)) +
+        juce::String(" -> ") +
+        juce::String(mpr_obj_get_prop_as_str(newMap->destSignals.front()->sig, MPR_PROP_NAME, nullptr)));
+  }
 
   // Call map added listeners
   juce::ScopedLock lock(mListenerLock);
@@ -202,18 +211,24 @@ MapperManager::Map* MapperManager::checkAddMap(mpr_map map) {
 void MapperManager::removeMap(mpr_map map) {
   auto iter = std::find_if(maps.begin(), maps.end(), [map](Map* other) { return other->map == map; });
   if (iter != maps.end()) {
-    DBG("rem map: " +
-        juce::String(mpr_obj_get_prop_as_str((*iter)->signals.first->sig, MPR_PROP_NAME, nullptr)) +
-        juce::String(" -> ") +
-        juce::String(mpr_obj_get_prop_as_str((*iter)->signals.second->sig, MPR_PROP_NAME, nullptr)));
+    MapperManager::Map* remMap = *iter;
+    if (remMap->sourceSignals.size() > 0 && remMap->destSignals.size() > 0) {
+      DBG("rem map: " +
+          juce::String(
+              mpr_obj_get_prop_as_str(remMap->sourceSignals.front()->sig, MPR_PROP_NAME, nullptr)) +
+          juce::String(" -> ") +
+          juce::String(
+              mpr_obj_get_prop_as_str(remMap->destSignals.front()->sig, MPR_PROP_NAME, nullptr)));
+    }
+
 
     // Call map removed listeners
     juce::ScopedLock lock(mListenerLock);
     for (MapsListener* listener : mMapsListeners) {
-      listener->mapRemoved(*iter);
+      listener->mapRemoved(remMap);
     }
-    mpr_map_release((*iter)->map);
-    maps.removeObject(*iter);
+    mpr_map_release(remMap->map);
+    maps.removeObject(remMap);
   }
 }
 
