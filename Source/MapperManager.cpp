@@ -42,6 +42,41 @@ MapperManager::~MapperManager() {
   if (graph) mpr_graph_free(graph);
 }
 
+juce::String MapperManager::Signal::getDescription(bool isDetailed) {
+  juce::String sigString;
+  /*int numProps = mpr_obj_get_num_props(sig, 1);
+  for (int i = 0; i < numProps; ++i) {
+    int propLen = 0;
+    const char* propName = nullptr;
+    mpr_type propType;
+    const void* values = nullptr;
+    mpr_prop prop =
+        mpr_obj_get_prop_by_idx(sig, i, &propName, &propLen, &propType, &values, nullptr);
+    DBG(juce::String(propName) + ": " + juce::String(&propType));
+  } */
+
+  sigString += juce::String(mpr_obj_get_prop_as_str(sig, MPR_PROP_NAME, nullptr));
+  if (!isDetailed) return sigString;
+  sigString += juce::String(" (");
+  sigString += getTypeString(mpr_obj_get_prop_as_int32(sig, MPR_PROP_TYPE, nullptr));
+  int sigLen = mpr_obj_get_prop_as_int32(sig, MPR_PROP_LEN, nullptr);
+  if (sigLen > 1) {
+    sigString += juce::String("[");
+    sigString += mpr_obj_get_prop_as_int32(sig, MPR_PROP_LEN, nullptr);
+    sigString += juce::String("]");
+  }
+  float min = mpr_obj_get_prop_as_flt(sig, MPR_PROP_MIN, nullptr);
+  float max = mpr_obj_get_prop_as_flt(sig, MPR_PROP_MAX, nullptr);
+  if (max > 0) {
+    sigString += juce::String(" ");
+    sigString += juce::String(min);
+    sigString += juce::String("..");
+    sigString += juce::String(max);
+  }
+  sigString += juce::String(")");
+  return sigString;
+}
+
 void MapperManager::addListener(DevicesListener* newListener) {
   const juce::ScopedLock sl(mListenerLock);
   mDevicesListeners.addIfNotAlreadyThere(newListener);
@@ -313,5 +348,20 @@ void MapperManager::mapCallbackHandler(mpr_graph g, mpr_map map, mpr_graph_evt e
     }
     default: {
     }
+  }
+}
+
+juce::String MapperManager::getTypeString(int type) {
+  switch (type) {
+    case MPR_BOOL:
+      return juce::String("bool");
+    case MPR_INT32:
+      return juce::String("int");
+    case MPR_FLT:
+      return juce::String("float");
+    case MPR_STR:
+      return juce::String("string");
+    default:
+      return juce::String("");
   }
 }

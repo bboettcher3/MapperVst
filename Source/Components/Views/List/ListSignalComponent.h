@@ -26,6 +26,7 @@ class ListSignalComponent : public juce::Component {
 
   MapperManager::Signal* getSignal() { return mSignal; }
   void setColour(juce::Colour colour);
+  void setShowDetails(bool shouldShow);
   void setIsHovering(bool isHovering) {
     mIsHovering = isHovering;
     repaint();
@@ -35,8 +36,9 @@ class ListSignalComponent : public juce::Component {
   // Bookkeeping
   MapperManager::Signal* mSignal;
   juce::Colour mColour;
-  juce::String mSigName;
+  juce::String mSigString;
   bool mIsHovering = false;
+  bool mShowsDetails = false;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ListSignalComponent)
 };

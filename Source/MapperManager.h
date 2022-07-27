@@ -18,14 +18,17 @@ class MapperManager {
   MapperManager();
   ~MapperManager();
 
-  typedef struct Signal {
+  class Signal {
+   public:
     Signal() : sig(nullptr) {}
     Signal(mpr_sig sig) : sig(sig) {}
     bool operator==(const Signal& s) { return (sig == s.sig); }
+    juce::String getDescription(bool isDetailed);
     mpr_sig sig;
-  } Signal;
+  };
 
-  typedef struct Device {
+  class Device {
+   public:
     Device() : dev(nullptr) {}
     Device(mpr_dev dev, juce::Colour colour) : dev(dev), colour(colour) {}
     bool operator==(const Device& d) { return (dev == d.dev); }
@@ -33,9 +36,10 @@ class MapperManager {
     juce::Colour colour;
     juce::OwnedArray<Signal> sourceSignals;
     juce::OwnedArray<Signal> destSignals;
-  } Device;
+  };
 
-  typedef struct Map {
+  class Map {
+   public:
     Map() : map(nullptr) {}
     Map(mpr_map map, std::vector<Signal*> sourceSignals, std::vector<Signal*> destSignals)
         : map(map), sourceSignals(sourceSignals), destSignals(destSignals) {}
@@ -43,7 +47,7 @@ class MapperManager {
     mpr_map map;
     std::vector<Signal*> sourceSignals;
     std::vector<Signal*> destSignals;
-  } Map;
+  };
 
   // Listens to device changes in the graph
   class DevicesListener {
@@ -60,7 +64,6 @@ class MapperManager {
     SignalsListener(Device* device) : device(device) {}
     virtual void signalAdded(Signal* signal) = 0;
     virtual void signalRemoved(Signal* signal) = 0;
-    
     Device* device;
   };
 
@@ -71,7 +74,6 @@ class MapperManager {
     virtual void mapSelected(Map* map) = 0;
     virtual void mapModified(Map* map) = 0;
     virtual void mapRemoved(Map* map) = 0;
-
     Map* map;
   };
 
@@ -118,4 +120,6 @@ class MapperManager {
   static void deviceCallbackHandler(mpr_graph g, mpr_dev dev, mpr_graph_evt e, const void* context);
   static void signalCallbackHandler(mpr_graph g, mpr_sig sig, mpr_graph_evt e, const void* context);
   static void mapCallbackHandler(mpr_graph g, mpr_map map, mpr_graph_evt e, const void* context);
+
+  static juce::String getTypeString(int type);
 };

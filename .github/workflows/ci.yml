@@ -43,6 +43,7 @@ jobs:
       with:
         path: ./build/Release/VST3/MapperVST.vst3
   MacOS-Latest:
+    if: ${{ false }}  # disable for now
     runs-on: macOS-latest
     steps:
     - uses: actions/checkout@v2
@@ -77,6 +78,7 @@ jobs:
           ./build/MapperVST.app
 
   Windows-Latest:
+    if: ${{ false }}  # disable for now
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2

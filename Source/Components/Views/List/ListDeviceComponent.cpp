@@ -54,7 +54,13 @@ ListDeviceComponent::ListDeviceComponent(MapperManager& manager, MapperManager::
       juce::PNGImageFormat::loadFrom(BinaryData::infoIcon_png, BinaryData::infoIcon_pngSize);
   mBtnInfo.setImages(false, true, true, infoIcon, 1.0f, juce::Colours::black, infoIcon, 1.0f,
                      juce::Colours::lightgrey, infoIcon, 1.0f, juce::Colours::white);
-  //mBtnInfo.onClick = [this] { mpr_obj_print(mDevice->dev); };
+  mBtnInfo.setToggleable(true);
+  mBtnInfo.setClickingTogglesState(true);
+  mBtnInfo.onStateChange = [this] {
+    for (ListSignalComponent* sigComp : mSignals) {
+      sigComp->setShowDetails(mBtnInfo.getToggleState());
+    }
+  };
   addChildComponent(mBtnInfo);
 
   mMapperManager.addListener(this);
