@@ -13,6 +13,7 @@
 MapperVstAudioProcessorEditor::MapperVstAudioProcessorEditor(MapperVstAudioProcessor& p)
     : AudioProcessorEditor(&p),
       audioProcessor(p),
+      mFileOpenSave(p.mapperManager),
       mListView(p.mapperManager),
       mExpressionEditor(p.mapperManager) {
   addAndMakeVisible(mFileOpenSave);

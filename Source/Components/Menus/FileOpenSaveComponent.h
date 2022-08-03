@@ -11,25 +11,28 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "../../MapperManager.h"
 
 //==============================================================================
 /*
  */
 class FileOpenSaveComponent : public juce::Component {
  public:
-  FileOpenSaveComponent();
+  FileOpenSaveComponent(MapperManager& manager);
   ~FileOpenSaveComponent() override;
 
   void paint(juce::Graphics&) override;
   void resized() override;
 
-  std::function<void()> onOpenClicked = nullptr;
-  std::function<void()> onSaveClicked = nullptr;
-
  private:
   static constexpr int FONT_HEIGHT = 14;
   static constexpr int PADDING = 10;
 
+  // Bookkeeping
+  MapperManager& mMapperManager;
+  std::unique_ptr<juce::FileChooser> mFileChooser;
+
+  // Components
   juce::TextButton mBtnOpen;
   juce::TextButton mBtnSave;
 

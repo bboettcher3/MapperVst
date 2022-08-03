@@ -10,21 +10,45 @@
 
 #include <JuceHeader.h>
 #include "FileOpenSaveComponent.h"
+#include "../../Presets.h"
 
 //==============================================================================
-FileOpenSaveComponent::FileOpenSaveComponent() {
+FileOpenSaveComponent::FileOpenSaveComponent(MapperManager& manager) : mMapperManager(manager) {
   mBtnOpen.setButtonText("Open");
   mBtnOpen.onClick = [this] {
-    if (onOpenClicked != nullptr) {
-      onOpenClicked();
-    }
+    mFileChooser = std::make_unique<juce::FileChooser>(
+        "Please select the mapping preset you want to load...",
+        juce::File::getSpecialLocation(juce::File::currentApplicationFile), "*.json");
+
+    auto folderChooserFlags =
+        juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
+
+    mFileChooser->launchAsync(folderChooserFlags, [this](const juce::FileChooser& chooser) {
+      juce::File presetFile(chooser.getResult());
+
+      Preset::open(presetFile, mMapperManager.maps.data(), mMapperManager.maps.size());
+    });
   };
   addAndMakeVisible(mBtnOpen);
   mBtnSave.setButtonText("Save");
   mBtnSave.onClick = [this] {
-    if (onSaveClicked != nullptr) {
-      onSaveClicked();
-    }
+    mFileChooser = std::make_unique<juce::FileChooser>(
+        "Please select or create a file to save the mapping preset into...",
+        juce::File::getSpecialLocation(juce::File::currentApplicationFile)
+            .getParentDirectory()
+            .getNonexistentChildFile("mappingPreset", "", false),
+        "*.json");
+
+    auto folderChooserFlags = juce::FileBrowserComponent::saveMode |
+                              juce::FileBrowserComponent::canSelectFiles |
+                              juce::FileBrowserComponent::warnAboutOverwriting |
+                              juce::FileBrowserComponent::doNotClearFileNameOnRootChange;
+
+    mFileChooser->launchAsync(folderChooserFlags, [this](const juce::FileChooser& chooser) {
+      juce::File presetFile(chooser.getResult());
+
+      Preset::save(presetFile, mMapperManager.maps.data(), mMapperManager.maps.size());
+    });
   };
   addAndMakeVisible(mBtnSave);
 

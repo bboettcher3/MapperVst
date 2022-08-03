@@ -49,6 +49,7 @@
           </GROUP>
         </GROUP>
       </GROUP>
+      <FILE id="Sovnkp" name="Presets.h" compile="0" resource="0" file="Source/Presets.h"/>
       <FILE id="VUvIMT" name="Utilities.h" compile="0" resource="0" file="Source/Utilities.h"/>
       <FILE id="NI747a" name="MapperManager.cpp" compile="1" resource="0"
             file="Source/MapperManager.cpp"/>
